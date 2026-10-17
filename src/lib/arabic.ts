@@ -5,9 +5,9 @@
 
 // Harakat, tanween, shadda, sukun, superscript alef, Quranic annotation signs
 // (small high letters, pause marks, rub el hizb, sajda), and tatweel.
-const DIACRITICS = /[ؐ-ًؚ-ٰٟۖ-ۭـ]/g
-const DIACRITIC = /^[ؐ-ًؚ-ٰٟۖ-ۭـ]$/
-const ALIF_FORMS = /^[آأإٱٲٳ]$/
+const DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g
+const DIACRITIC = /^[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]$/
+const ALIF_FORMS = /^[\u0622\u0623\u0625\u0671\u0672\u0673]$/
 const WHITESPACE = /^\s$/
 
 /** Remove diacritics and Quranic marks, keeping the base letters. */
@@ -21,9 +21,9 @@ export function stripDiacritics(text: string): string {
  */
 function arabicChar(c: string): string {
   if (DIACRITIC.test(c)) return ''
-  if (ALIF_FORMS.test(c)) return 'ا'
-  if (c === 'ة') return 'ه'
-  if (c === 'ى') return 'ي'
+  if (ALIF_FORMS.test(c)) return '\u0627'
+  if (c === '\u0629') return '\u0647'
+  if (c === '\u0649') return '\u064A'
   return c
 }
 
@@ -77,7 +77,7 @@ export function normalizeLatin(text: string): string {
   return normalizeLatinWithMap(text).text.trim()
 }
 
-const ARABIC_LETTER = /[ء-يٱ-ۓ]/
+const ARABIC_LETTER = /[\u0621-\u064A\u0671-\u06D3]/
 
 export function containsArabic(text: string): boolean {
   return ARABIC_LETTER.test(text)

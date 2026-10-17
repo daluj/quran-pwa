@@ -10,7 +10,7 @@ export type ReferenceResult =
 // "25", "25:43", "25 43", "25.43", "25/43", "25-43"; Arabic-Indic digits allowed.
 const REFERENCE = /^(\d+)(?:\s*[:./-]\s*|\s+)?(\d+)?$/
 
-const ARABIC_INDIC_DIGITS = /[٠-٩۰-۹]/g
+const ARABIC_INDIC_DIGITS = /[\u0660-\u0669\u06F0-\u06F9]/g
 
 function toAsciiDigits(text: string): string {
   return text.replace(ARABIC_INDIC_DIGITS, (d) => String(d.charCodeAt(0) & 0xf))
