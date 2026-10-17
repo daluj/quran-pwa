@@ -33,7 +33,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
       onClose={onClose}
       // A click on the dialog element itself (not its content) is the backdrop.
       onClick={(e) => e.target === ref.current && onClose()}
-      className="pb-safe m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-hidden rounded-t-2xl bg-bg p-0 text-fg shadow-xl backdrop:bg-black/50 sm:m-auto sm:max-h-[80dvh] sm:max-w-md sm:rounded-2xl"
+      className="pb-safe m-0 mt-auto max-h-[85dvh] w-full max-w-none overflow-hidden rounded-t-2xl bg-bg p-0 text-fg shadow-xl backdrop:bg-black/50 sm:m-auto dark:border dark:border-border dark:backdrop:bg-[#5b7083]/40 sm:max-h-[80dvh] sm:max-w-md sm:rounded-2xl"
     >
       {open && (
         <div className="flex max-h-[inherit] flex-col">
