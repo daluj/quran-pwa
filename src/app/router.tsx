@@ -9,8 +9,9 @@ export const routes: RouteObject[] = [
     element: <RootLayout />,
     children: [
       { index: true, element: <Navigate to="/quran" replace /> },
-      { path: 'quran', element: <QuranPage /> },
-      { path: 'quran/:surah/:ayah', element: <QuranPage /> },
+      // One route for /quran, /quran/:surah and /quran/:surah/:ayah so the feed
+      // stays mounted when jumping between verses.
+      { path: 'quran/:surah?/:ayah?', element: <QuranPage /> },
       { path: 'prayers', element: <PrayersPage /> },
       { path: 'explore', element: <ExplorePage /> },
       { path: '*', element: <Navigate to="/quran" replace /> },

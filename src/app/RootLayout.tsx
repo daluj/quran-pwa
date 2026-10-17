@@ -1,10 +1,18 @@
-import { Outlet } from 'react-router'
+import { useLayoutEffect } from 'react'
+import { Outlet, useLocation } from 'react-router'
 import { BottomTabBar } from '../components/layout/BottomTabBar'
 import { RightColumn } from '../components/layout/RightColumn'
 import { Sidebar } from '../components/layout/Sidebar'
 
 /** X-style shell: left sidebar, ~600px main column, optional right column; bottom tabs on mobile. */
 export function RootLayout() {
+  const section = useLocation().pathname.split('/')[1]
+
+  // Other sections open at the top; the Quran feed restores its own position.
+  useLayoutEffect(() => {
+    if (section !== 'quran') window.scrollTo(0, 0)
+  }, [section])
+
   return (
     <div className="min-h-dvh bg-bg text-fg">
       <a
