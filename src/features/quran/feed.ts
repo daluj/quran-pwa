@@ -56,7 +56,7 @@ export function resolveVerseTarget(surahParam: string, ayahParam: string, surahs
   if (ayah > surah.verseCount) {
     return {
       ok: false,
-      message: `Surah ${surah.name} (${surah.number}) has ${surah.verseCount} verses, so ${surahNumber}:${ayah} doesn't exist.`,
+      message: `Surah ${surah.number} has ${surah.verseCount} verses, so ${surahNumber}:${ayah} doesn't exist.`,
     }
   }
   return { ok: true, key: `${surahNumber}:${ayah}` }

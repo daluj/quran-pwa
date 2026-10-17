@@ -13,8 +13,6 @@ export interface Verse {
 
 export interface Surah {
   number: number
-  /** Transliterated name, e.g. "Al-Baqarah" */
-  name: string
   verseCount: number
   /** Whether the surah header shows the Bismillah (all except 1 and 9). */
   bismillah: boolean

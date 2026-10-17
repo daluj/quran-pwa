@@ -44,10 +44,7 @@ export function RightColumn() {
                   to={`/quran/${s.number}/1`}
                   className="flex items-baseline justify-between px-4 py-2 transition-colors hover:bg-hover"
                 >
-                  <span className="min-w-0 truncate">
-                    <span className="mr-2 text-sm text-muted tabular-nums">{s.number}</span>
-                    <span className="font-semibold">{s.name}</span>
-                  </span>
+                  <span className="font-semibold">Surah {s.number}</span>
                   <span className="shrink-0 text-sm text-muted">{s.verseCount} verses</span>
                 </Link>
               </li>

@@ -97,7 +97,7 @@ describe('app shell', () => {
     const router = renderApp('/')
     expect(router.state.location.pathname).toBe('/quran')
     expect(await screen.findByText('Praise be to God, Lord of the Worlds.')).toBeTruthy()
-    expect(screen.getByRole('heading', { level: 1, name: 'Al-Fatihah' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Surah 1' })).toBeTruthy()
   })
 
   it('navigates between the three sections', async () => {
@@ -129,7 +129,7 @@ describe('Quran feed', () => {
   it('renders surah headers and verse cards in Arabic', async () => {
     renderApp('/quran')
     await screen.findByText('Praise be to God, Lord of the Worlds.')
-    expect(screen.getByRole('region', { name: 'Surah 1, Al-Fatihah, 7 verses' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Surah 1, 7 verses' })).toBeTruthy()
     const arabic = document.querySelectorAll('article p[lang="ar"].quran-text')
     expect(arabic.length).toBeGreaterThan(0)
     expect(arabic[0]!.textContent).toBe((await db.verses.get('1:1'))!.textArabic)
@@ -137,20 +137,20 @@ describe('Quran feed', () => {
 
   it('scrolls to and highlights a deep-linked verse', async () => {
     renderApp('/quran/2/255')
-    const card = await screen.findByRole('article', { name: 'Al-Baqarah, verse 255 (2:255)' })
+    const card = await screen.findByRole('article', { name: 'Surah 2, verse 255' })
     expect(card.className).toContain('verse-highlight')
-    // Row 2:255 sits after Al-Fatihah (8 rows) and 255 rows of Al-Baqarah.
+    // Row 2:255 sits after surah 1 (8 rows) and 255 rows of surah 2.
     expect(scrollY).toBeGreaterThan(200 * ROW_HEIGHT)
   })
 
   it('explains references that do not exist', async () => {
     renderApp('/quran/1/8')
-    expect((await screen.findByRole('alert')).textContent).toMatch(/Al-Fatihah \(1\) has 7 verses/)
+    expect((await screen.findByRole('alert')).textContent).toMatch(/Surah 1 has 7 verses/)
   })
 
   it('remembers the scroll position when switching tabs', async () => {
     const router = renderApp('/quran/2/255')
-    await screen.findByRole('article', { name: 'Al-Baqarah, verse 255 (2:255)' })
+    await screen.findByRole('article', { name: 'Surah 2, verse 255' })
     await vi.waitFor(() => expect(scrollY).toBeGreaterThan(0))
     const position = scrollY
 
@@ -160,9 +160,9 @@ describe('Quran feed', () => {
 
     fireEvent.click(within(mainNav()).getByRole('link', { name: 'Quran' }))
     expect(router.state.location.pathname).toBe('/quran')
-    await screen.findByRole('article', { name: 'Al-Baqarah, verse 255 (2:255)' })
+    await screen.findByRole('article', { name: 'Surah 2, verse 255' })
     expect(scrollY).toBe(position)
-    expect(screen.getByRole('heading', { level: 1, name: 'Al-Baqarah' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Surah 2' })).toBeTruthy()
   })
 
   it('marks a verse as last read and continues reading from it', async () => {
@@ -172,18 +172,18 @@ describe('Quran feed', () => {
     const continueReading = screen.getByRole('button', { name: 'Continue reading: no bookmark yet' }) as HTMLButtonElement
     expect(continueReading.disabled).toBe(true)
 
-    const card = screen.getByRole('article', { name: 'Al-Fatihah, verse 5 (1:5)' })
+    const card = screen.getByRole('article', { name: 'Surah 1, verse 5' })
     const markRead = within(card).getByRole('button', { name: 'Mark as last read' })
     await act(async () => fireEvent.click(markRead))
     await vi.waitFor(() => expect(markRead.getAttribute('aria-pressed')).toBe('true'))
     expect(await db.bookmarks.get('lastRead')).toMatchObject({ verseKey: '1:5' })
 
-    const resume = await screen.findByRole('button', { name: 'Continue reading: Al-Fatihah, verse 5' })
+    const resume = await screen.findByRole('button', { name: 'Continue reading: surah 1, verse 5' })
     fireEvent.click(resume)
     expect(router.state.location.pathname).toBe('/quran/1/5')
 
     // Only one reading bookmark: marking another verse moves it.
-    const other = within(screen.getByRole('article', { name: 'Al-Fatihah, verse 2 (1:2)' })).getByRole('button', {
+    const other = within(screen.getByRole('article', { name: 'Surah 1, verse 2' })).getByRole('button', {
       name: 'Mark as last read',
     })
     await act(async () => fireEvent.click(other))

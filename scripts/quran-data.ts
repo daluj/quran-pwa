@@ -4,7 +4,6 @@
 import { createHash } from 'node:crypto'
 import { normalizeArabic } from '../src/lib/arabic.ts'
 import type { QuranMeta, Surah, Verse } from '../src/data/types.ts'
-import { SURAH_NAMES } from './surah-names.ts'
 
 export const EXPECTED_VERSES = 6236
 export const EXPECTED_SURAHS = 114
@@ -106,9 +105,6 @@ export interface QuranDataset {
 
 /** Merge the parsed Arabic and translation into the bundled dataset. */
 export function buildDataset(arabicContent: string, translationContent: string): QuranDataset {
-  if (SURAH_NAMES.length !== EXPECTED_SURAHS) {
-    throw new DataValidationError('surah-names.ts', [`expected ${EXPECTED_SURAHS} names, found ${SURAH_NAMES.length}`])
-  }
   const arabic = parseTanzil(arabicContent, 'quran-uthmani.txt')
   const translation = parseTanzil(translationContent, 'en.translation.txt')
 
@@ -136,14 +132,7 @@ export function buildDataset(arabicContent: string, translationContent: string):
 
   const surahs: Surah[] = []
   for (const v of verses) {
-    if (v.ayah === 1) {
-      surahs.push({
-        number: v.surah,
-        name: SURAH_NAMES[v.surah - 1]!,
-        verseCount: 0,
-        bismillah: hasBismillahHeader(v.surah),
-      })
-    }
+    if (v.ayah === 1) surahs.push({ number: v.surah, verseCount: 0, bismillah: hasBismillahHeader(v.surah) })
     surahs[surahs.length - 1]!.verseCount++
   }
 

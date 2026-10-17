@@ -12,7 +12,7 @@ Files in this folder are imported as-is and never edited by hand.
   distributed; the source (Tanzil Project) must be clearly indicated with a link
   to tanzil.net. The full copyright block is kept at the end of the file.
 - **Processing note:** in this text the Bismillah is prefixed to verse 1 of
-  every surah except Al-Fatiha (where it *is* verse 1) and At-Tawbah (which has
+  every surah except surah 1 (where it *is* verse 1) and surah 9 (which has
   none). The build script removes that prefix from verse 1 of surahs 2–114
   (except 9) so the Bismillah is shown once, in the surah header, matching the
   translation's verse boundaries. The raw file is not modified.

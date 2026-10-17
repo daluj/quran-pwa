@@ -28,7 +28,7 @@ describe('buildFeed', () => {
   it('indexes every verse', () => {
     expect(feed.verseRow.size).toBe(6236)
     const row = feed.rows[feed.verseRow.get('2:255')!]
-    expect(row).toMatchObject({ kind: 'verse', verse: { key: '2:255' }, surah: { name: 'Al-Baqarah' } })
+    expect(row).toMatchObject({ kind: 'verse', verse: { key: '2:255' }, surah: { number: 2 } })
     expect(feed.verseRow.get('114:6')).toBe(feed.rows.length - 1)
   })
 })

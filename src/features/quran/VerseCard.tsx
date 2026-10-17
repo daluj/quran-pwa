@@ -23,7 +23,7 @@ export const VerseCard = memo(function VerseCard({
 }: VerseCardProps) {
   return (
     <article
-      aria-label={`${surah.name}, verse ${verse.ayah} (${verse.key})`}
+      aria-label={`Surah ${surah.number}, verse ${verse.ayah}`}
       className={`flex gap-3 border-b border-border px-4 pt-3 pb-1 ${highlighted ? 'verse-highlight' : ''}`}
     >
       <div aria-hidden="true" className="pt-0.5">
@@ -34,7 +34,7 @@ export const VerseCard = memo(function VerseCard({
 
       <div className="min-w-0 flex-1">
         <p aria-hidden="true" className="text-[15px]">
-          <span className="font-bold">{surah.name}</span>
+          <span className="font-bold">Surah {surah.number}</span>
           <span className="text-muted"> · {verse.key}</span>
         </p>
         <p lang="ar" className="quran-text mt-1">

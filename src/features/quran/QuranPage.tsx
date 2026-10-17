@@ -38,10 +38,10 @@ export function QuranPage() {
     <>
       <Header
         ref={headerRef}
-        title={topSurah?.name ?? 'Quran'}
-        subtitle={topSurah ? `Surah ${topSurah.number} · ${topSurah.verseCount} verses` : undefined}
+        title={topSurah ? `Surah ${topSurah.number}` : 'Quran'}
+        subtitle={topSurah ? `${topSurah.verseCount} verses` : undefined}
       >
-        <QuickActions bookmarks={bookmarks} surahs={surahs} />
+        <QuickActions bookmarks={bookmarks} />
       </Header>
 
       {target && !target.ok && (
