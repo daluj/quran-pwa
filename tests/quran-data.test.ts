@@ -91,10 +91,14 @@ describe('buildDataset with the real data/raw files', () => {
   })
 
   it('keeps the known surah lengths', () => {
-    expect(surahs[0]).toEqual({ number: 1, verseCount: 7, bismillah: false })
-    expect(surahs[1]).toEqual({ number: 2, verseCount: 286, bismillah: true })
-    expect(surahs[8]).toEqual({ number: 9, verseCount: 129, bismillah: false })
-    expect(surahs[113]).toEqual({ number: 114, verseCount: 6, bismillah: true })
+    expect(surahs[0]).toEqual({ number: 1, name: 'Al-Fatihah', verseCount: 7, bismillah: false })
+    expect(surahs[1]).toEqual({ number: 2, name: 'Al-Baqarah', verseCount: 286, bismillah: true })
+    expect(surahs[8]).toEqual({ number: 9, name: 'At-Tawbah', verseCount: 129, bismillah: false })
+    expect(surahs[35]?.name).toBe('Ya-Sin')
+    expect(surahs[54]?.name).toBe('Ar-Rahman')
+    expect(surahs[66]?.name).toBe('Al-Mulk')
+    expect(new Set(surahs.map((s) => s.name)).size).toBe(EXPECTED_SURAHS)
+    expect(surahs[113]).toEqual({ number: 114, name: 'An-Nas', verseCount: 6, bismillah: true })
   })
 
   it('removes the Bismillah from every verse 1 except Al-Fatiha', () => {
