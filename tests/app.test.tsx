@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createMemoryRouter, RouterProvider } from 'react-router'
@@ -12,6 +12,24 @@ import { ThemeProvider } from '../src/theme/ThemeProvider'
 
 const versesJson = readFileSync(join(import.meta.dirname, '..', 'src', 'data', 'verses.json'), 'utf8')
 
+// jsdom has no layout. Fake just enough for the virtualizer: a window scroll
+// position that scrollTo moves (with the scroll event fired asynchronously,
+// as browsers do), feed rows 150px tall, and the list 120px down the page.
+let scrollY = 0
+const LIST_TOP = 120
+const ROW_HEIGHT = 150
+
+function scrollWindowTo(xOrOptions: number | ScrollToOptions, y?: number) {
+  scrollY = typeof xOrOptions === 'number' ? (y ?? 0) : (xOrOptions.top ?? scrollY)
+  setTimeout(() => window.dispatchEvent(new Event('scroll')), 0)
+}
+
+function fakeRect(this: Element): DOMRect {
+  const height = this.hasAttribute('data-index') ? ROW_HEIGHT : 0
+  const top = this.getAttribute('aria-label') === 'Quran' ? LIST_TOP - scrollY : 0
+  return { x: 0, y: top, top, left: 0, right: 560, bottom: top + height, width: 560, height, toJSON() {} }
+}
+
 beforeAll(() => {
   vi.stubGlobal(
     'matchMedia',
@@ -22,10 +40,38 @@ beforeAll(() => {
       removeEventListener: vi.fn(),
     })),
   )
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
   vi.stubGlobal('fetch', vi.fn(async () => new Response(versesJson, { status: 200 })))
+  Object.defineProperty(window, 'scrollY', { get: () => scrollY, configurable: true })
+  Object.defineProperty(window, 'pageYOffset', { get: () => scrollY, configurable: true })
+  window.scrollTo = scrollWindowTo as typeof window.scrollTo
+  Element.prototype.getBoundingClientRect = fakeRect
+  // Tall enough for the whole feed, so scrolling to a verse isn't clamped.
+  Object.defineProperty(document.documentElement, 'scrollHeight', {
+    configurable: true,
+    get: () => LIST_TOP + 6350 * ROW_HEIGHT,
+  })
+  // The virtualizer measures rows with offsetHeight.
+  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+    configurable: true,
+    get(this: HTMLElement) {
+      return this.hasAttribute('data-index') ? ROW_HEIGHT : 0
+    },
+  })
 })
 
-afterEach(cleanup)
+afterEach(async () => {
+  cleanup()
+  await db.bookmarks.clear()
+  scrollY = 0
+})
 
 afterAll(async () => {
   vi.unstubAllGlobals()
@@ -44,27 +90,25 @@ function renderApp(path: string) {
   return router
 }
 
+const mainNav = () => screen.getAllByRole('navigation', { name: 'Main' })[0]!
+
 describe('app shell', () => {
-  it('redirects / to the Quran section and seeds the data', async () => {
+  it('redirects / to the Quran feed', async () => {
     const router = renderApp('/')
     expect(router.state.location.pathname).toBe('/quran')
-    expect(await screen.findByText(/6,236 verses available offline/)).toBeTruthy()
     expect(await screen.findByText('Praise be to God, Lord of the Worlds.')).toBeTruthy()
-    // Al-Fatiha's seven verses render in Arabic with the Quran font class.
-    const arabic = document.querySelectorAll('p[lang="ar"].quran-text')
-    expect(arabic).toHaveLength(7)
-    expect(arabic[0]!.textContent).toBe((await db.verses.get('1:1'))!.textArabic)
+    expect(screen.getByRole('heading', { level: 1, name: 'Al-Fatihah' })).toBeTruthy()
   })
 
   it('navigates between the three sections', async () => {
     const router = renderApp('/quran')
-    const nav = screen.getAllByRole('navigation', { name: 'Main' })[0]!
-    fireEvent.click(within(nav).getByRole('link', { name: 'Prayers' }))
+    await screen.findByText('Praise be to God, Lord of the Worlds.')
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Prayers' }))
     expect(router.state.location.pathname).toBe('/prayers')
     for (const topic of ['Forgiveness', 'Guidance', 'Protection', 'Gratitude', 'Patience', 'Mercy']) {
       expect(await screen.findByText(topic)).toBeTruthy()
     }
-    fireEvent.click(within(nav).getByRole('link', { name: 'Explore' }))
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Explore' }))
     expect(router.state.location.pathname).toBe('/explore')
     expect(screen.getByRole('heading', { level: 1, name: 'Explore' })).toBeTruthy()
   })
@@ -78,5 +122,72 @@ describe('app shell', () => {
     expect(document.documentElement.dataset.theme).toBe('dark')
     expect(localStorage.getItem('quran-pwa:theme')).toBe('dark')
     await vi.waitFor(async () => expect((await db.settings.get('theme'))?.value).toBe('dark'))
+  })
+})
+
+describe('Quran feed', () => {
+  it('renders surah headers and verse cards in Arabic', async () => {
+    renderApp('/quran')
+    await screen.findByText('Praise be to God, Lord of the Worlds.')
+    expect(screen.getByRole('region', { name: 'Surah 1, Al-Fatihah, 7 verses' })).toBeTruthy()
+    const arabic = document.querySelectorAll('article p[lang="ar"].quran-text')
+    expect(arabic.length).toBeGreaterThan(0)
+    expect(arabic[0]!.textContent).toBe((await db.verses.get('1:1'))!.textArabic)
+  })
+
+  it('scrolls to and highlights a deep-linked verse', async () => {
+    renderApp('/quran/2/255')
+    const card = await screen.findByRole('article', { name: 'Al-Baqarah, verse 255 (2:255)' })
+    expect(card.className).toContain('verse-highlight')
+    // Row 2:255 sits after Al-Fatihah (8 rows) and 255 rows of Al-Baqarah.
+    expect(scrollY).toBeGreaterThan(200 * ROW_HEIGHT)
+  })
+
+  it('explains references that do not exist', async () => {
+    renderApp('/quran/1/8')
+    expect((await screen.findByRole('alert')).textContent).toMatch(/Al-Fatihah \(1\) has 7 verses/)
+  })
+
+  it('remembers the scroll position when switching tabs', async () => {
+    const router = renderApp('/quran/2/255')
+    await screen.findByRole('article', { name: 'Al-Baqarah, verse 255 (2:255)' })
+    await vi.waitFor(() => expect(scrollY).toBeGreaterThan(0))
+    const position = scrollY
+
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Prayers' }))
+    await screen.findByText('Forgiveness')
+    expect(scrollY).toBe(0)
+
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Quran' }))
+    expect(router.state.location.pathname).toBe('/quran')
+    await screen.findByRole('article', { name: 'Al-Baqarah, verse 255 (2:255)' })
+    expect(scrollY).toBe(position)
+    expect(screen.getByRole('heading', { level: 1, name: 'Al-Baqarah' })).toBeTruthy()
+  })
+
+  it('marks a verse as last read and continues reading from it', async () => {
+    // Earlier tests leave the feed scrolled elsewhere; open it at the start.
+    const router = renderApp('/quran/1/1')
+    await screen.findByText('Praise be to God, Lord of the Worlds.')
+    const continueReading = screen.getByRole('button', { name: 'Continue reading: no bookmark yet' }) as HTMLButtonElement
+    expect(continueReading.disabled).toBe(true)
+
+    const card = screen.getByRole('article', { name: 'Al-Fatihah, verse 5 (1:5)' })
+    const markRead = within(card).getByRole('button', { name: 'Mark as last read' })
+    await act(async () => fireEvent.click(markRead))
+    await vi.waitFor(() => expect(markRead.getAttribute('aria-pressed')).toBe('true'))
+    expect(await db.bookmarks.get('lastRead')).toMatchObject({ verseKey: '1:5' })
+
+    const resume = await screen.findByRole('button', { name: 'Continue reading: Al-Fatihah, verse 5' })
+    fireEvent.click(resume)
+    expect(router.state.location.pathname).toBe('/quran/1/5')
+
+    // Only one reading bookmark: marking another verse moves it.
+    const other = within(screen.getByRole('article', { name: 'Al-Fatihah, verse 2 (1:2)' })).getByRole('button', {
+      name: 'Mark as last read',
+    })
+    await act(async () => fireEvent.click(other))
+    await vi.waitFor(() => expect(markRead.getAttribute('aria-pressed')).toBe('false'))
+    expect(await db.bookmarks.count()).toBe(1)
   })
 })
