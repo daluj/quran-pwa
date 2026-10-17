@@ -1,3 +1,4 @@
+import { Settings } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { Logo } from '../Logo'
 import { NAV_ITEMS } from './nav'
@@ -31,7 +32,21 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="mt-auto xl:self-start">
+      <div className="mt-auto flex flex-col items-center xl:items-start">
+        <NavLink
+          to="/settings"
+          aria-label="Settings"
+          className={({ isActive }) =>
+            `flex items-center gap-4 rounded-full p-3 text-xl transition-colors hover:bg-hover xl:pr-6 ${isActive ? 'font-bold' : ''}`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <Settings className="size-6" strokeWidth={isActive ? 2.6 : 1.8} aria-hidden="true" />
+              <span className="hidden xl:inline">Settings</span>
+            </>
+          )}
+        </NavLink>
         <ThemeToggle showLabel />
       </div>
     </header>

@@ -3,6 +3,7 @@ import { ExplorePage } from '../features/explore/ExplorePage'
 import { ListDetailPage } from '../features/lists/ListDetailPage'
 import { PrayersPage } from '../features/prayers/PrayersPage'
 import { QuranPage } from '../features/quran/QuranPage'
+import { SettingsPage } from '../features/settings/SettingsPage'
 import { RootLayout } from './RootLayout'
 
 export const routes: RouteObject[] = [
@@ -17,6 +18,7 @@ export const routes: RouteObject[] = [
       { path: 'prayers/:listId', element: <ListDetailPage type="prayer" key="prayer" /> },
       { path: 'explore', element: <ExplorePage /> },
       { path: 'explore/collections/:listId', element: <ListDetailPage type="collection" key="collection" /> },
+      { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <Navigate to="/quran" replace /> },
     ],
   },

@@ -1,9 +1,8 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Settings } from 'lucide-react'
 import type { ReactNode, Ref } from 'react'
 import { Link, useLocation } from 'react-router'
 import { Logo } from '../Logo'
 import { sectionTitle } from './nav'
-import { ThemeToggle } from './ThemeToggle'
 
 interface HeaderProps {
   title?: string
@@ -20,10 +19,11 @@ interface HeaderProps {
 
 /**
  * Sticky header at the top of the main column. On mobile it also carries the
- * logo and theme toggle (the sidebar is hidden there).
+ * logo and a settings link (the sidebar is hidden there).
  */
 export function Header({ title, subtitle, backTo, backLabel = 'Back', actions, children, ref }: HeaderProps) {
   const { pathname } = useLocation()
+  const onSettings = pathname === '/settings'
   const heading = title ?? sectionTitle(pathname)
 
   return (
@@ -41,9 +41,16 @@ export function Header({ title, subtitle, backTo, backLabel = 'Back', actions, c
           {subtitle && <p className="truncate text-[13px] text-muted">{subtitle}</p>}
         </div>
         {actions && <div className="flex items-center">{actions}</div>}
-        <div className="-mr-2 sm:hidden">
-          <ThemeToggle />
-        </div>
+        {/* Mobile has no sidebar: settings (theme included) live behind this. */}
+        {!onSettings && (
+          <Link
+            to="/settings"
+            aria-label="Settings"
+            className="-mr-2 rounded-full p-2 transition-colors hover:bg-hover sm:hidden"
+          >
+            <Settings className="size-6" aria-hidden="true" />
+          </Link>
+        )}
       </div>
       {children}
     </div>

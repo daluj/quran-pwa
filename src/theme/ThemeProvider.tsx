@@ -1,3 +1,4 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ThemePreference } from '../db/db'
 import { getSettings, setSetting } from '../db/settings'
@@ -36,24 +37,16 @@ function cachePreference(preference: ThemePreference): void {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [preference, setPreferenceState] = useState<ThemePreference>(readCachedPreference)
+  // IndexedDB is the source of truth (it also changes when a backup is
+  // restored). Until it's read, use the localStorage mirror; right after a
+  // change, use the new value until the database reports it back.
+  const stored = useLiveQuery(async () => (await getSettings()).theme, [])
+  const [cached] = useState(readCachedPreference)
+  const [pending, setPending] = useState<ThemePreference>()
+  if (pending !== undefined && stored === pending) setPending(undefined)
+  const preference = pending ?? stored ?? cached
+
   const [systemDark, setSystemDark] = useState(() => darkQuery().matches)
-
-  // IndexedDB is the source of truth; sync once it's readable.
-  useEffect(() => {
-    let cancelled = false
-    getSettings()
-      .then(({ theme }) => {
-        if (cancelled) return
-        setPreferenceState(theme)
-        cachePreference(theme)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   useEffect(() => {
     const query = darkQuery()
     const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches)
@@ -68,9 +61,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[resolved])
   }, [resolved])
 
+  useEffect(() => cachePreference(preference), [preference])
+
   const setPreference = useCallback((next: ThemePreference) => {
-    setPreferenceState(next)
-    cachePreference(next)
+    setPending(next)
     void setSetting('theme', next)
   }, [])
 
