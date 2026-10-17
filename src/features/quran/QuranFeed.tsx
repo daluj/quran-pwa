@@ -1,9 +1,12 @@
 import { useWindowVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import meta from '../../data/meta.json'
 import type { Surah } from '../../data/types'
 import { useBookmarks } from '../../db/bookmarks'
+import type { ListType } from '../../db/db'
+import { useSavedVerseKeys } from '../../db/listHooks'
 import { useSettings } from '../../db/settings'
+import { SaveSheet, type SaveTarget } from '../lists/SaveSheet'
 import { scrollRowFor, type Feed, type FeedRow } from './feed'
 import { SurahHeader } from './SurahHeader'
 import { VerseCard } from './VerseCard'
@@ -28,6 +31,9 @@ interface QuranFeedProps {
 export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSurahChange }: QuranFeedProps) {
   const { arabicFontSize, showTranslation } = useSettings()
   const bookmarks = useBookmarks()
+  const saved = useSavedVerseKeys()
+  const [saveTarget, setSaveTarget] = useState<SaveTarget | null>(null)
+  const openSaveSheet = useCallback((type: ListType, verseKey: string) => setSaveTarget({ type, verseKey }), [])
   // The target is highlighted until its timer marks this navigation as done.
   const [highlightDoneFor, setHighlightDoneFor] = useState<string>()
   const highlightKey = target && highlightDoneFor !== navigationKey ? target : undefined
@@ -136,47 +142,53 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
   useEffect(() => onTopSurahChange(topSurah), [topSurah, onTopSurahChange])
 
   return (
-    <div
-      ref={listRef}
-      aria-label="Quran"
-      style={
-        {
-          height: virtualizer.getTotalSize(),
-          position: 'relative',
-          '--arabic-font-size': `${arabicFontSize}px`,
-        } as CSSProperties
-      }
-    >
+    <>
       <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          transform: `translateY(${(items[0]?.start ?? 0) - virtualizer.options.scrollMargin}px)`,
-        }}
+        ref={listRef}
+        aria-label="Quran"
+        style={
+          {
+            height: virtualizer.getTotalSize(),
+            position: 'relative',
+            '--arabic-font-size': `${arabicFontSize}px`,
+          } as CSSProperties
+        }
       >
-        {items.map((item) => {
-          const row = feed.rows[item.index]!
-          return (
-            <div key={item.key} data-index={item.index} ref={virtualizer.measureElement}>
-              {row.kind === 'surah' ? (
-                <SurahHeader surah={row.surah} bismillah={meta.bismillah} />
-              ) : (
-                <VerseCard
-                  verse={row.verse}
-                  surah={row.surah}
-                  showTranslation={showTranslation}
-                  isLastRead={bookmarks.lastRead === row.verse.key}
-                  isLastRecited={bookmarks.lastRecited === row.verse.key}
-                  highlighted={highlightKey === row.verse.key}
-                />
-              )}
-            </div>
-          )
-        })}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            transform: `translateY(${(items[0]?.start ?? 0) - virtualizer.options.scrollMargin}px)`,
+          }}
+        >
+          {items.map((item) => {
+            const row = feed.rows[item.index]!
+            return (
+              <div key={item.key} data-index={item.index} ref={virtualizer.measureElement}>
+                {row.kind === 'surah' ? (
+                  <SurahHeader surah={row.surah} bismillah={meta.bismillah} />
+                ) : (
+                  <VerseCard
+                    verse={row.verse}
+                    surah={row.surah}
+                    showTranslation={showTranslation}
+                    isLastRead={bookmarks.lastRead === row.verse.key}
+                    isLastRecited={bookmarks.lastRecited === row.verse.key}
+                    savedInCollection={saved.collection.has(row.verse.key)}
+                    savedInPrayers={saved.prayer.has(row.verse.key)}
+                    highlighted={highlightKey === row.verse.key}
+                    onSave={openSaveSheet}
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
-    </div>
+      <SaveSheet target={saveTarget} onClose={() => setSaveTarget(null)} />
+    </>
   )
 }
 

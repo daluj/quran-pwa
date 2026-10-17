@@ -2,6 +2,7 @@ import { Bookmark, FolderPlus, HandHeart, Mic, type LucideIcon } from 'lucide-re
 import { memo } from 'react'
 import type { Surah, Verse } from '../../data/types'
 import { toggleBookmark } from '../../db/bookmarks'
+import type { ListType } from '../../db/db'
 
 interface VerseCardProps {
   verse: Verse
@@ -9,7 +10,11 @@ interface VerseCardProps {
   showTranslation: boolean
   isLastRead: boolean
   isLastRecited: boolean
+  savedInCollection: boolean
+  savedInPrayers: boolean
   highlighted: boolean
+  /** Opens the save sheet; must be stable (cards are memoized). */
+  onSave: (type: ListType, verseKey: string) => void
 }
 
 /** One "post" in the Quran feed. */
@@ -19,7 +24,10 @@ export const VerseCard = memo(function VerseCard({
   showTranslation,
   isLastRead,
   isLastRecited,
+  savedInCollection,
+  savedInPrayers,
   highlighted,
+  onSave,
 }: VerseCardProps) {
   return (
     <article
@@ -43,8 +51,23 @@ export const VerseCard = memo(function VerseCard({
         {showTranslation && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
 
         <div role="group" aria-label={`Actions for verse ${verse.key}`} className="-ml-2 mt-1 flex max-w-md justify-between">
-          <ActionButton icon={FolderPlus} label="Save to collection" disabled />
-          <ActionButton icon={HandHeart} label="Save to prayers" disabled />
+          <ActionButton
+            icon={FolderPlus}
+            label="Save to collection"
+            activeLabel="Saved in collections (edit)"
+            active={savedInCollection}
+            opensDialog
+            onClick={() => onSave('collection', verse.key)}
+          />
+          <ActionButton
+            icon={HandHeart}
+            label="Save to prayers"
+            activeLabel="Saved in prayers (edit)"
+            active={savedInPrayers}
+            tone="prayer"
+            opensDialog
+            onClick={() => onSave('prayer', verse.key)}
+          />
           <ActionButton
             icon={Bookmark}
             label="Mark as last read"
@@ -70,6 +93,7 @@ export const VerseCard = memo(function VerseCard({
 const TONES = {
   read: { active: 'text-read', hover: 'hover:text-read hover:bg-read/10' },
   recite: { active: 'text-recite', hover: 'hover:text-recite hover:bg-recite/10' },
+  prayer: { active: 'text-prayer', hover: 'hover:text-prayer hover:bg-prayer/10' },
   neutral: { active: 'text-accent', hover: 'hover:text-accent hover:bg-accent/10' },
 }
 
@@ -79,6 +103,8 @@ interface ActionButtonProps {
   activeLabel?: string
   active?: boolean
   disabled?: boolean
+  /** Opens a sheet instead of toggling: announced as a dialog trigger, not a toggle. */
+  opensDialog?: boolean
   tone?: keyof typeof TONES
   onClick?: () => void
 }
@@ -89,6 +115,7 @@ function ActionButton({
   activeLabel,
   active = false,
   disabled = false,
+  opensDialog = false,
   tone = 'neutral',
   onClick,
 }: ActionButtonProps) {
@@ -100,7 +127,8 @@ function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-pressed={onClick ? active : undefined}
+      aria-pressed={onClick && !opensDialog ? active : undefined}
+      aria-haspopup={opensDialog ? 'dialog' : undefined}
       aria-label={disabled ? `${label} (coming soon)` : name}
       title={disabled ? `${label} (coming soon)` : name}
       className={`rounded-full p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${

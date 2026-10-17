@@ -16,6 +16,7 @@
   --accent-fg: #ffffff;
   --read: #1d9bf0;
   --recite: #d97706;
+  --prayer: #db2777;
   --header-bg: rgb(255 255 255 / 0.85);
   color-scheme: light;
 }
@@ -32,6 +33,7 @@
   --accent-fg: #00201c;
   --read: #1d9bf0;
   --recite: #f59e0b;
+  --prayer: #f472b6;
   --header-bg: rgb(0 0 0 / 0.65);
   color-scheme: dark;
 }
@@ -50,6 +52,7 @@
     --accent-fg: #00201c;
     --read: #1d9bf0;
     --recite: #f59e0b;
+    --prayer: #f472b6;
     --header-bg: rgb(0 0 0 / 0.65);
     color-scheme: dark;
   }
@@ -67,6 +70,7 @@
   --color-accent-fg: var(--accent-fg);
   --color-read: var(--read);
   --color-recite: var(--recite);
+  --color-prayer: var(--prayer);
   --color-header: var(--header-bg);
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-quran: 'Amiri Quran', 'Amiri', serif;
