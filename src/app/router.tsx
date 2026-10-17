@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { ExplorePage } from '../features/explore/ExplorePage'
+import { ListDetailPage } from '../features/lists/ListDetailPage'
 import { PrayersPage } from '../features/prayers/PrayersPage'
 import { QuranPage } from '../features/quran/QuranPage'
 import { RootLayout } from './RootLayout'
@@ -13,7 +14,9 @@ export const routes: RouteObject[] = [
       // stays mounted when jumping between verses.
       { path: 'quran/:surah?/:ayah?', element: <QuranPage /> },
       { path: 'prayers', element: <PrayersPage /> },
+      { path: 'prayers/:listId', element: <ListDetailPage type="prayer" key="prayer" /> },
       { path: 'explore', element: <ExplorePage /> },
+      { path: 'explore/collections/:listId', element: <ListDetailPage type="collection" key="collection" /> },
       { path: '*', element: <Navigate to="/quran" replace /> },
     ],
   },

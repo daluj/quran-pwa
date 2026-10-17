@@ -6,12 +6,12 @@ import { Sidebar } from '../components/layout/Sidebar'
 
 /** X-style shell: left sidebar, ~600px main column, optional right column; bottom tabs on mobile. */
 export function RootLayout() {
-  const section = useLocation().pathname.split('/')[1]
+  const { pathname } = useLocation()
 
-  // Other sections open at the top; the Quran feed restores its own position.
+  // Other pages open at the top; the Quran feed restores its own position.
   useLayoutEffect(() => {
-    if (section !== 'quran') window.scrollTo(0, 0)
-  }, [section])
+    if (pathname.split('/')[1] !== 'quran') window.scrollTo(0, 0)
+  }, [pathname])
 
   return (
     <div className="min-h-dvh bg-bg text-fg">

@@ -8,6 +8,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { DataProvider } from '../src/app/DataProvider'
 import { routes } from '../src/app/router'
 import { db } from '../src/db/db'
+import { addVerse, getListItems } from '../src/db/lists'
 import { ThemeProvider } from '../src/theme/ThemeProvider'
 
 const versesJson = readFileSync(join(import.meta.dirname, '..', 'src', 'data', 'verses.json'), 'utf8')
@@ -52,6 +53,14 @@ beforeAll(() => {
   Object.defineProperty(window, 'scrollY', { get: () => scrollY, configurable: true })
   Object.defineProperty(window, 'pageYOffset', { get: () => scrollY, configurable: true })
   window.scrollTo = scrollWindowTo as typeof window.scrollTo
+  // jsdom has no modal dialogs.
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.open = false
+    this.dispatchEvent(new Event('close'))
+  }
   Element.prototype.getBoundingClientRect = fakeRect
   // Tall enough for the whole feed, so scrolling to a verse isn't clamped.
   Object.defineProperty(document.documentElement, 'scrollHeight', {
@@ -189,5 +198,99 @@ describe('Quran feed', () => {
     await act(async () => fireEvent.click(other))
     await vi.waitFor(() => expect(markRead.getAttribute('aria-pressed')).toBe('false'))
     expect(await db.bookmarks.count()).toBe(1)
+  })
+})
+
+describe('lists', () => {
+  it('saves a verse into a new collection from the feed', async () => {
+    const router = renderApp('/quran/1/1')
+    await screen.findByText('Praise be to God, Lord of the Worlds.')
+    const card = screen.getByRole('article', { name: 'Surah 1, verse 5' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Save to collection' }))
+
+    const sheet = await screen.findByRole('dialog', { name: 'Save to collection · 1:5' })
+    fireEvent.change(within(sheet).getByRole('textbox', { name: 'New collection name' }), {
+      target: { value: 'Favourites' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Create' }))
+    const box = await within(sheet).findByRole('checkbox', { name: /Favourites/ })
+    await vi.waitFor(() => expect((box as HTMLInputElement).checked).toBe(true))
+
+    // A duplicate name is refused with a message.
+    fireEvent.change(within(sheet).getByRole('textbox', { name: 'New collection name' }), {
+      target: { value: 'favourites' },
+    })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Create' }))
+    expect((await within(sheet).findByRole('alert')).textContent).toMatch(/already exists/)
+
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Done' }))
+    await vi.waitFor(() =>
+      expect(within(card).getByRole('button', { name: 'Saved in collections (edit)' })).toBeTruthy(),
+    )
+
+    // The collection shows up in Explore with the verse in it.
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Explore' }))
+    fireEvent.click(await screen.findByRole('link', { name: /Favourites\s*1 verse/ }))
+    expect(router.state.location.pathname).toMatch(/^\/explore\/collections\//)
+    expect(await screen.findByRole('article', { name: 'Surah 1, verse 5' })).toBeTruthy()
+  })
+
+  it('saves a verse into several prayer topics', async () => {
+    renderApp('/quran/1/1')
+    await screen.findByText('Praise be to God, Lord of the Worlds.')
+    const card = screen.getByRole('article', { name: 'Surah 1, verse 6' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Save to prayers' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Save to prayers · 1:6' })
+    fireEvent.click(await within(sheet).findByRole('checkbox', { name: /Guidance/ }))
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Mercy/ }))
+    await vi.waitFor(async () => {
+      const lists = await db.lists.where('type').equals('prayer').toArray()
+      const withVerse = await db.listItems.where('verseKey').equals('1:6').toArray()
+      const names = withVerse.map((i) => lists.find((l) => l.id === i.listId)?.name).sort()
+      expect(names).toEqual(['Guidance', 'Mercy'])
+    })
+  })
+
+  it('reorders, removes, renames and deletes a prayer topic', async () => {
+    const patience = (await db.lists.where('name').equals('Patience').first())!
+    for (const key of ['2:153', '2:155', '3:200']) await addVerse(patience.id, key)
+
+    const router = renderApp('/prayers')
+    fireEvent.click(await screen.findByRole('link', { name: /Patience\s*3 verses/ }))
+    expect(router.state.location.pathname).toBe(`/prayers/${patience.id}`)
+    expect(await screen.findByRole('heading', { level: 1, name: 'Patience' })).toBeTruthy()
+
+    const order = () => screen.getAllByRole('article').map((a) => a.getAttribute('aria-label'))
+    await screen.findByRole('article', { name: 'Surah 3, verse 200' })
+    expect(screen.getByRole('button', { name: 'Move 2:153 up' })).toHaveProperty('disabled', true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Move 3:200 up' }))
+    await vi.waitFor(() =>
+      expect(order()).toEqual(['Surah 2, verse 153', 'Surah 3, verse 200', 'Surah 2, verse 155']),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove 2:153 from Patience' }))
+    await vi.waitFor(() => expect(order()).toEqual(['Surah 3, verse 200', 'Surah 2, verse 155']))
+    expect((await getListItems(patience.id)).map((i) => i.verseKey)).toEqual(['3:200', '2:155'])
+
+    expect(screen.getAllByRole('link', { name: /Open in Quran/ })[0]!.getAttribute('href')).toBe('/quran/3/200')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename prayer topic' }))
+    const rename = await screen.findByRole('dialog', { name: 'Rename prayer topic' })
+    fireEvent.change(within(rename).getByRole('textbox', { name: 'Name' }), { target: { value: 'Sabr' } })
+    fireEvent.click(within(rename).getByRole('button', { name: 'Save' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sabr' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete prayer topic' }))
+    const confirm = await screen.findByRole('dialog', { name: 'Delete prayer topic?' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Delete' }))
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/prayers'))
+    expect(await db.lists.get(patience.id)).toBeUndefined()
+    expect(await db.listItems.where('listId').equals(patience.id).count()).toBe(0)
+  })
+
+  it('shows a message for a topic that does not exist', async () => {
+    renderApp('/prayers/not-a-real-id')
+    expect(await screen.findByText(/doesn't exist/)).toBeTruthy()
   })
 })

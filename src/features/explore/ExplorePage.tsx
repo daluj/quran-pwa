@@ -1,7 +1,9 @@
 import { useSearchParams } from 'react-router'
+import { DataGate } from '../../components/DataGate'
 import { Header } from '../../components/layout/Header'
+import { ListIndex } from '../lists/ListIndex'
 
-/** Phase 1 placeholder. Search and collections come in phase 4. */
+/** Explore: search (phase 4) above the user's collections. */
 export function ExplorePage() {
   const [params] = useSearchParams()
   const q = params.get('q')
@@ -9,10 +11,14 @@ export function ExplorePage() {
   return (
     <>
       <Header />
-      <div className="px-4 py-8 text-center text-muted">
-        <p>Search and collections arrive in phase 4.</p>
+      <div className="border-b border-border px-4 py-6 text-center text-muted">
+        <p>Search arrives in phase 4.</p>
         {q && <p className="mt-2 text-sm">You searched for “{q}”.</p>}
       </div>
+      <h2 className="px-4 pt-4 pb-2 text-xl font-bold">Collections</h2>
+      <DataGate>
+        <ListIndex type="collection" />
+      </DataGate>
     </>
   )
 }

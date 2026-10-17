@@ -1,4 +1,7 @@
+import { FolderOpen, HandHeart } from 'lucide-react'
 import type { ListType } from '../../db/db'
+
+export const LIST_ICONS = { prayer: HandHeart, collection: FolderOpen }
 
 /** UI wording and routes for each kind of list. */
 export const LIST_LABELS: Record<
