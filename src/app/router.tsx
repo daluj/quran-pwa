@@ -1,10 +1,10 @@
-import { createBrowserRouter, Navigate } from 'react-router'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { ExplorePage } from '../features/explore/ExplorePage'
 import { PrayersPage } from '../features/prayers/PrayersPage'
 import { QuranPage } from '../features/quran/QuranPage'
 import { RootLayout } from './RootLayout'
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
@@ -16,4 +16,6 @@ export const router = createBrowserRouter([
       { path: '*', element: <Navigate to="/quran" replace /> },
     ],
   },
-])
+]
+
+export const router = createBrowserRouter(routes)

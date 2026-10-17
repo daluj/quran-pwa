@@ -22,3 +22,6 @@ npm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local Claude Code config
+.claude/

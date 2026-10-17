@@ -32,6 +32,7 @@ npm run dev
 | `npm run data`       | Rebuild `src/data/*.json` from `data/raw/`                      |
 | `npm test`           | Run unit tests                                                  |
 | `npm run lint`       | Lint                                                            |
+| `npm run icons`      | Regenerate PWA icons from `public/favicon.svg`                 |
 | `npm run typecheck`  | Type-check                                                      |
 
 ## Data sources

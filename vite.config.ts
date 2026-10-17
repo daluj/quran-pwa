@@ -11,7 +11,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
-      includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
+      // Everything in public/ is already matched by globPatterns below.
+      includeManifestIcons: false,
       manifest: {
         name: 'Quran',
         short_name: 'Quran',
@@ -46,7 +47,7 @@ export default defineConfig({
     }),
   ],
   test: {
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'node',
   },
 })
