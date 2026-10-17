@@ -294,3 +294,60 @@ describe('lists', () => {
     expect(await screen.findByText(/doesn't exist/)).toBeTruthy()
   })
 })
+
+describe('Explore search', () => {
+  const searchBox = () => screen.getByRole('searchbox')
+
+  it('goes to a verse reference', async () => {
+    const router = renderApp('/explore')
+    fireEvent.change(searchBox(), { target: { value: '2 255' } })
+    fireEvent.click(await screen.findByRole('link', { name: 'Go to 2:255' }))
+    expect(router.state.location.pathname).toBe('/quran/2/255')
+  })
+
+  it('goes straight to a reference on Enter', async () => {
+    const router = renderApp('/explore')
+    await screen.findByRole('heading', { level: 2, name: 'Collections' })
+    fireEvent.change(searchBox(), { target: { value: '36' } })
+    fireEvent.submit(screen.getByRole('search'))
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/quran/36/1'))
+  })
+
+  it('explains references that do not exist', async () => {
+    renderApp('/explore')
+    fireEvent.change(searchBox(), { target: { value: '114:7' } })
+    expect(await screen.findByText(/Surah 114 has 6 verses/)).toBeTruthy()
+  })
+
+  it('searches the translation and highlights the match', async () => {
+    const router = renderApp('/explore')
+    fireEvent.change(searchBox(), { target: { value: 'lord of the WORLDS' } })
+    const status = await screen.findByText(/verses? match/)
+    expect(status.textContent).toMatch(/in the translation/)
+    expect(router.state.location.search).toBe('?q=lord+of+the+WORLDS')
+
+    const first = within(screen.getByRole('list', { name: 'Search results' })).getAllByRole('link')[0]!
+    expect(first.getAttribute('aria-label')).toBe('Surah 1, verse 2')
+    expect([...first.querySelectorAll('mark')].map((m) => m.textContent)).toContain('Lord of the Worlds')
+    fireEvent.click(first)
+    expect(router.state.location.pathname).toBe('/quran/1/2')
+  })
+
+  it('searches the Arabic ignoring diacritics and letter variants', async () => {
+    renderApp('/explore?q=' + encodeURIComponent('الحمد لله رب العالمين'))
+    const status = await screen.findByText(/verses? match/)
+    expect(status.textContent).toMatch(/in the Arabic/)
+    const first = within(screen.getByRole('list', { name: 'Search results' })).getAllByRole('link')[0]!
+    expect(first.getAttribute('aria-label')).toBe('Surah 1, verse 2')
+    // The whole verse is marked, inside the Arabic text.
+    const marked = first.querySelector('p[lang="ar"] mark')
+    expect(marked?.textContent).toBe((await db.verses.get('1:2'))!.textArabic)
+  })
+
+  it('says when nothing matches and shows collections when empty', async () => {
+    renderApp('/explore?q=zzqx')
+    expect((await screen.findByText(/No verses match/)).textContent).toContain('“zzqx”')
+    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    expect(await screen.findByRole('heading', { level: 2, name: 'Collections' })).toBeTruthy()
+  })
+})

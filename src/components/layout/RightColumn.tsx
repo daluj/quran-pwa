@@ -1,25 +1,34 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Search } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { db } from '../../db/db'
+import { parseReference } from '../../lib/reference'
 
-/** Optional desktop column: search box and a surah list. */
+/** Optional desktop column: search box (except on Explore, which has its own) and a surah list. */
 export function RightColumn() {
   const navigate = useNavigate()
+  const onExplore = useLocation().pathname.startsWith('/explore')
   const [query, setQuery] = useState('')
   const surahs = useLiveQuery(() => db.surahs.orderBy('number').toArray(), [])
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     const q = query.trim()
+    // A reference goes straight to the verse; anything else opens Explore.
+    const reference = surahs ? parseReference(q, surahs) : undefined
+    if (reference?.kind === 'ok') {
+      setQuery('')
+      navigate(reference.path)
+      return
+    }
     navigate(q ? `/explore?q=${encodeURIComponent(q)}` : '/explore')
   }
 
   return (
     <aside aria-label="Sidebar" className="hidden w-[350px] shrink-0 pl-8 lg:block">
       <div className="sticky top-0 flex max-h-dvh flex-col gap-4 py-2">
-        <form role="search" onSubmit={onSubmit}>
+        <form role="search" onSubmit={onSubmit} hidden={onExplore}>
           <label className="flex h-11 items-center gap-3 rounded-full border border-transparent bg-surface px-4 focus-within:border-accent focus-within:bg-bg">
             <Search className="size-4 text-muted" aria-hidden="true" />
             <span className="sr-only">Search the Quran</span>

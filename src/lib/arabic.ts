@@ -27,6 +27,21 @@ function arabicChar(c: string): string {
   return c
 }
 
+/**
+ * Placeholder for letters Uthmani spelling writes differently from everyday
+ * spelling: the dagger alif (ٰ), hamza above (ٔ) and lone hamza (ء). Search
+ * treats it as optional, and as a stand-in for a typed alif.
+ */
+export const OPTIONAL_LETTER = '\u066D'
+
+export const ALIF = '\u0627'
+
+/** Like `arabicChar`, but keeps a placeholder for dagger alif and hamza. */
+function arabicSearchChar(c: string): string {
+  if (c === '\u0670' || c === '\u0654' || c === '\u0621') return OPTIONAL_LETTER
+  return arabicChar(c)
+}
+
 /** Latin search form of one character: lowercase, accents dropped (é → e). */
 function latinChar(c: string): string {
   return c.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
@@ -61,6 +76,11 @@ function normalizeWithMap(text: string, normalizeChar: (c: string) => string): N
 
 export function normalizeArabicWithMap(text: string): NormalizedText {
   return normalizeWithMap(text, arabicChar)
+}
+
+/** Arabic search skeleton (see `arabicSearchChar`), used for matching and highlighting. */
+export function normalizeArabicSearchWithMap(text: string): NormalizedText {
+  return normalizeWithMap(text, arabicSearchChar)
 }
 
 export function normalizeLatinWithMap(text: string): NormalizedText {

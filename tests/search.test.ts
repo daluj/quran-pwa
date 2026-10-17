@@ -22,9 +22,9 @@ function marks(text: string, input: string): string[] {
 
 describe('parseQuery', () => {
   it('detects the script and normalizes terms', () => {
-    expect(parseQuery('  Mercy   Merciful ')).toEqual({ script: 'latin', terms: ['mercy', 'merciful'] })
-    expect(parseQuery('الرَّحْمَٰنِ')).toEqual({ script: 'arabic', terms: ['الرحمن'] })
-    expect(parseQuery('رحمة رحمة')).toEqual({ script: 'arabic', terms: ['رحمه'] })
+    expect(parseQuery('  Mercy   Merciful ')).toMatchObject({ script: 'latin', terms: ['mercy', 'merciful'] })
+    expect(parseQuery('رَحْمَةٌ')).toMatchObject({ script: 'arabic', terms: ['رحمه'] })
+    expect(parseQuery('رحمة رحمة')?.terms).toHaveLength(1)
   })
 
   it('ignores queries that are too short', () => {
@@ -74,6 +74,24 @@ describe('searching the Arabic', () => {
     expect(search('هدى للمتقين')).toContain('2:2')
   })
 
+  it('matches everyday spelling against Uthmani spelling', () => {
+    // Dagger alif: ٱلْعَٰلَمِينَ (1:2) and ٱلرَّحْمَٰنِ (1:1).
+    expect(search('العالمين')).toContain('1:2')
+    expect(search('العلمين')).toContain('1:2')
+    expect(search('الرحمن الرحيم')).toContain('1:1')
+    expect(search('الرحمان الرحيم')).toContain('1:1')
+    // Hamza: يَسْـَٔلُونَكَ (2:189) and ءَامَنُوا۟ (2:9).
+    expect(search('يسألونك عن الأهلة')).toContain('2:189')
+    expect(search('آمنوا')).toContain('2:9')
+    expect(search('ءامنوا')).toContain('2:9')
+  })
+
+  it('still requires a typed alif to be there', () => {
+    // 112:1 is قُلْ هُوَ ٱللَّهُ أَحَدٌ: "say", not "said".
+    expect(search('قل هو الله احد')).toContain('112:1')
+    expect(search('قال هو الله احد')).not.toContain('112:1')
+  })
+
   it('only searches the Arabic text for Arabic queries', () => {
     expect(search('الله').length).toBeGreaterThan(1000)
     expect(search('god').every((k) => !verse(k).textArabicPlain.includes('god'))).toBe(true)
@@ -94,10 +112,11 @@ describe('highlightRanges', () => {
     const text = verse('1:2').textArabic
     expect(marks(text, 'حمد')).toEqual([text.split(' ')[0]])
     expect(marks(text, 'رب العلمين')).toEqual([text.split(' ').slice(2).join(' ')])
+    expect(marks(text, 'رب العالمين')).toEqual([text.split(' ').slice(2).join(' ')])
   })
 
   it('returns no ranges when nothing matches', () => {
-    const query: SearchQuery = { script: 'latin', terms: ['zzz'] }
+    const query: SearchQuery = { script: 'latin', terms: ['zzz'], patterns: [] }
     expect(highlightRanges('nothing here', query)).toEqual([])
   })
 })
