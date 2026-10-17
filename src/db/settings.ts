@@ -1,4 +1,4 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+import { createContext, useContext } from 'react'
 import { db, DEFAULT_SETTINGS, type QuranDB, type SettingKey, type Settings } from './db'
 
 export async function getSettings(database: QuranDB = db): Promise<Settings> {
@@ -16,7 +16,9 @@ export async function setSetting<K extends SettingKey>(
   await database.settings.put({ key, value })
 }
 
-/** Live settings, falling back to defaults while loading. */
+/** Live settings, provided by SettingsProvider (loaded before the app renders). */
+export const SettingsContext = createContext<Settings>(DEFAULT_SETTINGS)
+
 export function useSettings(): Settings {
-  return useLiveQuery(() => getSettings(), [], DEFAULT_SETTINGS)
+  return useContext(SettingsContext)
 }

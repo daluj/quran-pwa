@@ -1,5 +1,5 @@
 import { ArrowLeft, Settings } from 'lucide-react'
-import type { ReactNode, Ref } from 'react'
+import { useEffect, type ReactNode, type Ref } from 'react'
 import { Link, useLocation } from 'react-router'
 import { Logo } from '../Logo'
 import { sectionTitle } from './nav'
@@ -25,6 +25,10 @@ export function Header({ title, subtitle, backTo, backLabel = 'Back', actions, c
   const { pathname } = useLocation()
   const onSettings = pathname === '/settings'
   const heading = title ?? sectionTitle(pathname)
+
+  useEffect(() => {
+    document.title = heading === 'Quran' ? 'Quran' : `${heading} · Quran`
+  }, [heading])
 
   return (
     <div ref={ref} className="pt-safe sticky top-0 z-10 border-b border-border bg-header backdrop-blur-md">

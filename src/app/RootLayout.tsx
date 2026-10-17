@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import { BottomTabBar } from '../components/layout/BottomTabBar'
+import { PwaStatus } from '../components/PwaStatus'
 import { RightColumn } from '../components/layout/RightColumn'
 import { Sidebar } from '../components/layout/Sidebar'
 
@@ -32,6 +33,7 @@ export function RootLayout() {
         <RightColumn />
       </div>
       <BottomTabBar />
+      <PwaStatus />
     </div>
   )
 }

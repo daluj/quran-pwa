@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import axe from 'axe-core'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createMemoryRouter, RouterProvider } from 'react-router'
@@ -8,6 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { DataProvider } from '../src/app/DataProvider'
 import { routes } from '../src/app/router'
 import { db } from '../src/db/db'
+import { SettingsProvider } from '../src/db/SettingsProvider'
 import { addVerse, getListItems } from '../src/db/lists'
 import { ThemeProvider } from '../src/theme/ThemeProvider'
 
@@ -32,6 +34,8 @@ function fakeRect(this: Element): DOMRect {
 }
 
 beforeAll(() => {
+  // index.html sets this.
+  document.documentElement.lang = 'en'
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({
@@ -91,9 +95,11 @@ function renderApp(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(
     <ThemeProvider>
-      <DataProvider>
-        <RouterProvider router={router} />
-      </DataProvider>
+      <SettingsProvider>
+        <DataProvider>
+          <RouterProvider router={router} />
+        </DataProvider>
+      </SettingsProvider>
     </ThemeProvider>,
   )
   return router
@@ -104,7 +110,7 @@ const mainNav = () => screen.getAllByRole('navigation', { name: 'Main' })[0]!
 describe('app shell', () => {
   it('redirects / to the Quran feed', async () => {
     const router = renderApp('/')
-    expect(router.state.location.pathname).toBe('/quran')
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/quran'))
     expect(await screen.findByText('Praise be to God, Lord of the Worlds.')).toBeTruthy()
     expect(screen.getByRole('heading', { level: 1, name: 'Surah 1' })).toBeTruthy()
   })
@@ -124,7 +130,7 @@ describe('app shell', () => {
 
   it('cycles the theme and saves the choice', async () => {
     renderApp('/quran')
-    const toggle = screen.getAllByRole('button', { name: /^System theme/ })[0]!
+    const toggle = (await screen.findAllByRole('button', { name: /^System theme/ }))[0]!
     fireEvent.click(toggle)
     expect(document.documentElement.dataset.theme).toBe('light')
     fireEvent.click(screen.getAllByRole('button', { name: /^Light theme/ })[0]!)
@@ -296,11 +302,11 @@ describe('lists', () => {
 })
 
 describe('Explore search', () => {
-  const searchBox = () => screen.getByRole('searchbox')
+  const searchBox = () => screen.findByRole('searchbox')
 
   it('goes to a verse reference', async () => {
     const router = renderApp('/explore')
-    fireEvent.change(searchBox(), { target: { value: '2 255' } })
+    fireEvent.change(await searchBox(), { target: { value: '2 255' } })
     fireEvent.click(await screen.findByRole('link', { name: 'Go to 2:255' }))
     expect(router.state.location.pathname).toBe('/quran/2/255')
   })
@@ -308,20 +314,20 @@ describe('Explore search', () => {
   it('goes straight to a reference on Enter', async () => {
     const router = renderApp('/explore')
     await screen.findByRole('heading', { level: 2, name: 'Collections' })
-    fireEvent.change(searchBox(), { target: { value: '36' } })
+    fireEvent.change(await searchBox(), { target: { value: '36' } })
     fireEvent.submit(screen.getByRole('search'))
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/quran/36/1'))
   })
 
   it('explains references that do not exist', async () => {
     renderApp('/explore')
-    fireEvent.change(searchBox(), { target: { value: '114:7' } })
+    fireEvent.change(await searchBox(), { target: { value: '114:7' } })
     expect(await screen.findByText(/Surah 114 has 6 verses/)).toBeTruthy()
   })
 
   it('searches the translation and highlights the match', async () => {
     const router = renderApp('/explore')
-    fireEvent.change(searchBox(), { target: { value: 'lord of the WORLDS' } })
+    fireEvent.change(await searchBox(), { target: { value: 'lord of the WORLDS' } })
     const status = await screen.findByText(/verses? match/)
     expect(status.textContent).toMatch(/in the translation/)
     expect(router.state.location.search).toBe('?q=lord+of+the+WORLDS')
@@ -349,5 +355,100 @@ describe('Explore search', () => {
     expect((await screen.findByText(/No verses match/)).textContent).toContain('“zzqx”')
     fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
     expect(await screen.findByRole('heading', { level: 2, name: 'Collections' })).toBeTruthy()
+  })
+})
+
+describe('Settings', () => {
+  it('turns the translation off and changes the Arabic size', async () => {
+    renderApp('/settings')
+    const toggle = await screen.findByRole('switch', { name: 'Show English translation' })
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(toggle)
+    await vi.waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('false'))
+
+    const slider = screen.getByRole('slider', { name: 'Arabic text size' })
+    fireEvent.change(slider, { target: { value: '40' } })
+    await vi.waitFor(async () => expect((await db.settings.get('arabicFontSize'))?.value).toBe(40))
+    await vi.waitFor(() => expect(screen.getByLabelText('Preview').getAttribute('style')).toContain('40px'))
+
+    // The feed follows both settings.
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Quran' }))
+    await screen.findByRole('article', { name: 'Surah 1, verse 2' })
+    expect(screen.queryByText('Praise be to God, Lord of the Worlds.')).toBeNull()
+
+    await db.settings.clear()
+  })
+
+  it('picks a theme', async () => {
+    renderApp('/settings')
+    fireEvent.click(await screen.findByRole('radio', { name: 'Dark' }))
+    await vi.waitFor(() => expect(document.documentElement.dataset.theme).toBe('dark'))
+    fireEvent.click(screen.getByRole('radio', { name: 'System' }))
+    await vi.waitFor(() => expect(document.documentElement.dataset.theme).toBe('light'))
+    await db.settings.clear()
+  })
+
+  it('exports a backup and restores it after confirmation', async () => {
+    const mercy = (await db.lists.where('name').equals('Mercy').first())!
+    await addVerse(mercy.id, '39:53')
+
+    let exported = ''
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: (blob: Blob) => {
+        void blob.text().then((t) => (exported = t))
+        return 'blob:backup'
+      },
+      revokeObjectURL: () => {},
+    })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    renderApp('/settings')
+    fireEvent.click(await screen.findByRole('button', { name: 'Export backup' }))
+    await vi.waitFor(() => expect(exported).not.toBe(''))
+    expect(click).toHaveBeenCalled()
+    expect(await screen.findByText(/Exported \d+ lists/)).toBeTruthy()
+    click.mockRestore()
+    vi.stubGlobal('URL', URL)
+
+    // Change things, then restore the export.
+    await db.listItems.where('listId').equals(mercy.id).delete()
+    const file = new File([exported], 'backup.json', { type: 'application/json' })
+    fireEvent.change(screen.getByLabelText('Backup file'), { target: { files: [file] } })
+    const confirm = await screen.findByRole('dialog', { name: 'Restore this backup?' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Replace my data' }))
+    expect(await screen.findByText('Backup restored.')).toBeTruthy()
+    expect((await getListItems(mercy.id)).map((i) => i.verseKey)).toContain('39:53')
+  })
+
+  it('refuses a file that is not a backup', async () => {
+    renderApp('/settings')
+    const file = new File(['{"hello":1}'], 'other.json', { type: 'application/json' })
+    fireEvent.change(await screen.findByLabelText('Backup file'), { target: { files: [file] } })
+    expect((await screen.findByRole('alert')).textContent).toMatch(/isn't a Quran app backup/)
+    expect(screen.queryByRole('dialog', { name: 'Restore this backup?' })).toBeNull()
+  })
+})
+
+describe('accessibility (axe)', () => {
+  // Color contrast needs real layout; it's checked in a browser instead. The
+  // sidebar and the mobile tab bar are both "Main" navigation, and CSS shows
+  // only one of them at any width; jsdom loads no CSS, so leave the tab bar out.
+  const runAxe = () =>
+    axe.run(
+      { exclude: [['nav.fixed']] },
+      { rules: { 'color-contrast': { enabled: false } }, resultTypes: ['violations'] },
+    )
+
+  it.each([
+    ['/quran/1/1', 'Praise be to God, Lord of the Worlds.'],
+    ['/prayers', 'Forgiveness'],
+    ['/explore?q=mercy', 'Show more results'],
+    ['/settings', 'Your data'],
+  ])('%s has no violations', async (path, ready) => {
+    renderApp(path)
+    await screen.findAllByText(new RegExp(ready))
+    const { violations } = await runAxe()
+    expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([])
   })
 })
