@@ -1,0 +1,99 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Theme tokens. data-theme is set on <html> before first paint (index.html). */
+:root,
+[data-theme='light'] {
+  --bg: #ffffff;
+  --fg: #0f1419;
+  --muted: #536471;
+  --border: #eff3f4;
+  --surface: #f7f9f9;
+  --hover: rgb(15 20 25 / 0.06);
+  --accent: #0f766e;
+  --accent-hover: #115e59;
+  --accent-fg: #ffffff;
+  --header-bg: rgb(255 255 255 / 0.85);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #000000;
+  --fg: #e7e9ea;
+  --muted: #71767b;
+  --border: #2f3336;
+  --surface: #16181c;
+  --hover: rgb(231 233 234 / 0.08);
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-fg: #00201c;
+  --header-bg: rgb(0 0 0 / 0.65);
+  color-scheme: dark;
+}
+
+/* Without JS (or before it runs), follow the system. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #000000;
+    --fg: #e7e9ea;
+    --muted: #71767b;
+    --border: #2f3336;
+    --surface: #16181c;
+    --hover: rgb(231 233 234 / 0.08);
+    --accent: #2dd4bf;
+    --accent-hover: #5eead4;
+    --accent-fg: #00201c;
+    --header-bg: rgb(0 0 0 / 0.65);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-hover: var(--hover);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-header: var(--header-bg);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-quran: 'Amiri Quran', 'Amiri', serif;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@utility quran-text {
+  font-family: var(--font-quran);
+  direction: rtl;
+  text-align: right;
+  line-height: 2.2;
+  font-size: var(--arabic-font-size, 28px);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
