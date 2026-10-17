@@ -50,6 +50,8 @@ export interface MetaRow {
   value: string
 }
 
+export const ARABIC_FONT_SIZE = { min: 20, max: 48, step: 2 }
+
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   showTranslation: true,
