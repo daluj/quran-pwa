@@ -32,7 +32,7 @@ export interface TanzilLine {
 export function parseTanzil(content: string, source: string): Map<string, TanzilLine> {
   const problems: string[] = []
   const verses = new Map<string, TanzilLine>()
-  const lines = content.replace(/^﻿/, '').split(/\r?\n/)
+  const lines = content.replace(/^\uFEFF/, '').split(/\r?\n/)
 
   lines.forEach((line, i) => {
     const lineNo = i + 1

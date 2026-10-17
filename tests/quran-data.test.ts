@@ -30,7 +30,7 @@ describe('parseTanzil', () => {
   })
 
   it('strips a UTF-8 BOM and handles CRLF', () => {
-    const verses = parseTanzil(`﻿${syntheticFile().replace(/\n/g, '\r\n')}`, 'test')
+    const verses = parseTanzil(`\uFEFF${syntheticFile().replace(/\n/g, '\r\n')}`, 'test')
     expect(verses.get('1:1')?.text).toBe('verse 1:1')
     expect(verses.get('114:6')?.text).toBe('verse 114:6')
   })
