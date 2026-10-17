@@ -24,7 +24,7 @@
 [data-theme='dark'] {
   --bg: #000000;
   --fg: #e7e9ea;
-  --muted: #71767b;
+  --muted: #8b98a5;
   --border: #2f3336;
   --surface: #16181c;
   --hover: rgb(231 233 234 / 0.08);
@@ -43,7 +43,7 @@
   :root:not([data-theme]) {
     --bg: #000000;
     --fg: #e7e9ea;
-    --muted: #71767b;
+    --muted: #8b98a5;
     --border: #2f3336;
     --surface: #16181c;
     --hover: rgb(231 233 234 / 0.08);

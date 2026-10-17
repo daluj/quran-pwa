@@ -184,7 +184,7 @@ describe('Quran feed', () => {
     // Earlier tests leave the feed scrolled elsewhere; open it at the start.
     const router = renderApp('/quran/1/1')
     await screen.findByText('Praise be to God, Lord of the Worlds.')
-    const continueReading = screen.getByRole('button', { name: 'Continue reading: no bookmark yet' }) as HTMLButtonElement
+    const continueReading = screen.getByRole('button', { name: /Continue reading\s*not set/ }) as HTMLButtonElement
     expect(continueReading.disabled).toBe(true)
 
     const card = screen.getByRole('article', { name: 'Surah 1, verse 5' })
@@ -193,7 +193,7 @@ describe('Quran feed', () => {
     await vi.waitFor(() => expect(markRead.getAttribute('aria-pressed')).toBe('true'))
     expect(await db.bookmarks.get('lastRead')).toMatchObject({ verseKey: '1:5' })
 
-    const resume = await screen.findByRole('button', { name: 'Continue reading: surah 1, verse 5' })
+    const resume = await screen.findByRole('button', { name: /Continue reading\s*1:5/ })
     fireEvent.click(resume)
     expect(router.state.location.pathname).toBe('/quran/1/5')
 
@@ -333,8 +333,8 @@ describe('Explore search', () => {
     expect(router.state.location.search).toBe('?q=lord+of+the+WORLDS')
 
     const first = within(screen.getByRole('list', { name: 'Search results' })).getAllByRole('link')[0]!
-    expect(first.getAttribute('aria-label')).toBe('Surah 1, verse 2')
-    expect([...first.querySelectorAll('mark')].map((m) => m.textContent)).toContain('Lord of the Worlds')
+    expect(first.getAttribute('href')).toBe('/quran/1/2')
+    expect([...first.closest('li')!.querySelectorAll('mark')].map((m) => m.textContent)).toContain('Lord of the Worlds')
     fireEvent.click(first)
     expect(router.state.location.pathname).toBe('/quran/1/2')
   })
@@ -344,9 +344,9 @@ describe('Explore search', () => {
     const status = await screen.findByText(/verses? match/)
     expect(status.textContent).toMatch(/in the Arabic/)
     const first = within(screen.getByRole('list', { name: 'Search results' })).getAllByRole('link')[0]!
-    expect(first.getAttribute('aria-label')).toBe('Surah 1, verse 2')
+    expect(first.getAttribute('href')).toBe('/quran/1/2')
     // The whole verse is marked, inside the Arabic text.
-    const marked = first.querySelector('p[lang="ar"] mark')
+    const marked = first.closest('li')!.querySelector('p[lang="ar"] mark')
     expect(marked?.textContent).toBe((await db.verses.get('1:2'))!.textArabic)
   })
 

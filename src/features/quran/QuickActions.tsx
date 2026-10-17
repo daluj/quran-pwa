@@ -9,9 +9,9 @@ interface QuickActionsProps {
 /** "Continue reading" / "Continue reciting" pills, jumping to the bookmarks. */
 export function QuickActions({ bookmarks }: QuickActionsProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto px-4 pb-2">
-      <Pill icon={Bookmark} label="Continue reading" verseKey={bookmarks.lastRead} tone="read" />
-      <Pill icon={Mic} label="Continue reciting" verseKey={bookmarks.lastRecited} tone="recite" />
+    <div className="flex gap-2 px-4 pb-2">
+      <Pill icon={Bookmark} label="Continue reading" short="Reading" verseKey={bookmarks.lastRead} tone="read" />
+      <Pill icon={Mic} label="Continue reciting" short="Reciting" verseKey={bookmarks.lastRecited} tone="recite" />
     </div>
   )
 }
@@ -19,11 +19,13 @@ export function QuickActions({ bookmarks }: QuickActionsProps) {
 interface PillProps {
   icon: LucideIcon
   label: string
+  /** Label on narrow screens, where both pills must fit on one line. */
+  short: string
   verseKey: string | undefined
   tone: 'read' | 'recite'
 }
 
-function Pill({ icon: Icon, label, verseKey, tone }: PillProps) {
+function Pill({ icon: Icon, label, short, verseKey, tone }: PillProps) {
   const navigate = useNavigate()
   const [surah, ayah] = verseKey?.split(':') ?? []
 
@@ -32,12 +34,16 @@ function Pill({ icon: Icon, label, verseKey, tone }: PillProps) {
       type="button"
       disabled={!verseKey}
       onClick={() => navigate(`/quran/${surah}/${ayah}`)}
-      aria-label={verseKey ? `${label}: surah ${surah}, verse ${ayah}` : `${label}: no bookmark yet`}
-      className="flex shrink-0 items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm whitespace-nowrap transition-colors hover:bg-hover disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
+      title={verseKey ? `${label}: surah ${surah}, verse ${ayah}` : `${label}: no bookmark yet`}
+      className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full sm:flex-none border border-border px-3 py-1.5 text-sm whitespace-nowrap transition-colors hover:bg-hover disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
     >
       <Icon className={`size-4 ${tone === 'read' ? 'text-read' : 'text-recite'}`} fill="currentColor" aria-hidden="true" />
-      <span className="font-bold">{label}</span>
-      <span className="text-muted">{verseKey ?? 'no bookmark yet'}</span>
+      {/* The visible text is the accessible name (no aria-label), so voice control matches it. */}
+      <span className="font-bold">
+        <span className="sm:hidden">{short}</span>
+        <span className="hidden sm:inline">{label}</span>
+      </span>
+      <span className="truncate text-muted">{verseKey ?? 'not set'}</span>
     </button>
   )
 }

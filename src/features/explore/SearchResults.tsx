@@ -78,14 +78,14 @@ const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; qu
   const arabic = query.script === 'arabic'
 
   return (
-    <Link
-      to={`/quran/${verse.surah}/${verse.ayah}`}
-      aria-label={`Surah ${verse.surah}, verse ${verse.ayah}`}
-      className="block border-b border-border px-4 py-3 transition-colors hover:bg-hover"
-    >
+    // The "Surah N · s:a" line is the link; its ::after covers the whole card
+    // so the card is clickable while the link's name stays short.
+    <article className="relative border-b border-border px-4 py-3 transition-colors hover:bg-hover">
       <p className="text-[15px]">
-        <span className="font-bold">Surah {verse.surah}</span>
-        <span className="text-muted"> · {verse.key}</span>
+        <Link to={`/quran/${verse.surah}/${verse.ayah}`} className="after:absolute after:inset-0">
+          <span className="font-bold">Surah {verse.surah}</span>
+          <span className="text-muted"> · {verse.key}</span>
+        </Link>
       </p>
       <p
         lang="ar"
@@ -104,6 +104,6 @@ const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; qu
           )}
         </p>
       )}
-    </Link>
+    </article>
   )
 })
