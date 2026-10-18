@@ -35,6 +35,8 @@ export interface Settings {
   showTranslation: boolean
   /** Hide the Arabic and show only the translation (overrides showTranslation). */
   englishOnly: boolean
+  /** Quran feed shows only the verse number and text (no title line or actions). */
+  readingMode: boolean
   /** Arabic font size in px */
   arabicFontSize: number
 }
@@ -58,6 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   showTranslation: true,
   englishOnly: false,
+  readingMode: false,
   arabicFontSize: 28,
 }
 

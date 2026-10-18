@@ -9,6 +9,8 @@ interface VerseCardProps {
   surah: Surah
   showArabic: boolean
   showEnglish: boolean
+  /** Only the verse number and text: no title line, no actions. */
+  readingMode: boolean
   isLastRead: boolean
   isLastRecited: boolean
   savedInCollection: boolean
@@ -24,6 +26,7 @@ export const VerseCard = memo(function VerseCard({
   surah,
   showArabic,
   showEnglish,
+  readingMode,
   isLastRead,
   isLastRecited,
   savedInCollection,
@@ -34,7 +37,7 @@ export const VerseCard = memo(function VerseCard({
   return (
     <article
       aria-label={`Surah ${surah.number}, verse ${verse.ayah}`}
-      className={`flex gap-3 border-b border-border px-4 pt-3 pb-1 ${highlighted ? 'verse-highlight' : ''}`}
+      className={`flex gap-3 border-b border-border px-4 pt-3 ${readingMode ? 'pb-3' : 'pb-1'} ${highlighted ? 'verse-highlight' : ''}`}
     >
       <div aria-hidden="true" className="pt-0.5">
         <span className="flex size-10 items-center justify-center rounded-full bg-surface text-sm font-semibold text-muted">
@@ -43,52 +46,60 @@ export const VerseCard = memo(function VerseCard({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p aria-hidden="true" className="text-[15px]">
-          <span className="font-bold">Surah {surah.number}</span>
-          <span className="text-muted"> · {verse.key}</span>
-        </p>
+        {!readingMode && (
+          <p aria-hidden="true" className="mb-1 text-[15px]">
+            <span className="font-bold">Surah {surah.number}</span>
+            <span className="text-muted"> · {verse.key}</span>
+          </p>
+        )}
         {showArabic && (
-          <p lang="ar" className="quran-text mt-1">
+          <p lang="ar" className="quran-text">
             {verse.textArabic}
           </p>
         )}
-        {showEnglish && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
+        {showEnglish && (
+          <p className={`text-[15px] leading-relaxed ${showArabic ? 'mt-1' : readingMode ? 'pt-2' : ''}`}>
+            {verse.translation}
+          </p>
+        )}
 
-        <div role="group" aria-label={`Actions for verse ${verse.key}`} className="-ml-2 mt-1 flex max-w-md justify-between">
-          <ActionButton
-            icon={FolderPlus}
-            label="Save to collection"
-            activeLabel="Saved in collections (edit)"
-            active={savedInCollection}
-            opensDialog
-            onClick={() => onSave('collection', verse.key)}
-          />
-          <ActionButton
-            icon={HandHeart}
-            label="Save to prayers"
-            activeLabel="Saved in prayers (edit)"
-            active={savedInPrayers}
-            tone="prayer"
-            opensDialog
-            onClick={() => onSave('prayer', verse.key)}
-          />
-          <ActionButton
-            icon={Bookmark}
-            label="Mark as last read"
-            activeLabel="Last read (tap to clear)"
-            active={isLastRead}
-            tone="read"
-            onClick={() => void toggleBookmark('lastRead', verse.key)}
-          />
-          <ActionButton
-            icon={Mic}
-            label="Mark as last recited"
-            activeLabel="Last recited (tap to clear)"
-            active={isLastRecited}
-            tone="recite"
-            onClick={() => void toggleBookmark('lastRecited', verse.key)}
-          />
-        </div>
+        {!readingMode && (
+          <div role="group" aria-label={`Actions for verse ${verse.key}`} className="-ml-2 mt-1 flex max-w-md justify-between">
+            <ActionButton
+              icon={FolderPlus}
+              label="Save to collection"
+              activeLabel="Saved in collections (edit)"
+              active={savedInCollection}
+              opensDialog
+              onClick={() => onSave('collection', verse.key)}
+            />
+            <ActionButton
+              icon={HandHeart}
+              label="Save to prayers"
+              activeLabel="Saved in prayers (edit)"
+              active={savedInPrayers}
+              tone="prayer"
+              opensDialog
+              onClick={() => onSave('prayer', verse.key)}
+            />
+            <ActionButton
+              icon={Bookmark}
+              label="Mark as last read"
+              activeLabel="Last read (tap to clear)"
+              active={isLastRead}
+              tone="read"
+              onClick={() => void toggleBookmark('lastRead', verse.key)}
+            />
+            <ActionButton
+              icon={Mic}
+              label="Mark as last recited"
+              activeLabel="Last recited (tap to clear)"
+              active={isLastRecited}
+              tone="recite"
+              onClick={() => void toggleBookmark('lastRecited', verse.key)}
+            />
+          </div>
+        )}
       </div>
     </article>
   )

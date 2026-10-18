@@ -138,6 +138,7 @@ export function validateBackup(raw: unknown, verseExists: (key: string) => boole
   if (s.theme === 'system' || s.theme === 'light' || s.theme === 'dark') settings.theme = s.theme
   if (typeof s.showTranslation === 'boolean') settings.showTranslation = s.showTranslation
   if (typeof s.englishOnly === 'boolean') settings.englishOnly = s.englishOnly
+  if (typeof s.readingMode === 'boolean') settings.readingMode = s.readingMode
   if (
     typeof s.arabicFontSize === 'number' &&
     s.arabicFontSize >= ARABIC_FONT_SIZE.min &&

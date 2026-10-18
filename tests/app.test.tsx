@@ -403,6 +403,24 @@ describe('Settings', () => {
     await db.settings.clear()
   })
 
+  it('reading mode shows only the verse number and text', async () => {
+    const router = renderApp('/settings')
+    fireEvent.click(await screen.findByRole('switch', { name: 'Reading mode' }))
+    await vi.waitFor(async () => expect((await db.settings.get('readingMode'))?.value).toBe(true))
+
+    await router.navigate('/quran/1/1')
+    const card = await screen.findByRole('article', { name: 'Surah 1, verse 2' })
+    expect(within(card).queryAllByRole('button')).toHaveLength(0)
+    expect(within(card).queryByText(/1:2/)).toBeNull()
+    expect(within(card).getByText('2')).toBeTruthy()
+    expect(card.querySelector('p[lang="ar"]')).toBeTruthy()
+    expect(within(card).getByText('Praise be to God, Lord of the Worlds.')).toBeTruthy()
+
+    // Surah headers stay.
+    expect(screen.getByRole('region', { name: 'Surah 1, 7 verses' })).toBeTruthy()
+    await db.settings.clear()
+  })
+
   it('picks a theme', async () => {
     renderApp('/settings')
     fireEvent.click(await screen.findByRole('radio', { name: 'Dark' }))

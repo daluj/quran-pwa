@@ -66,7 +66,7 @@ describe('backup', () => {
     const backup = await createBackup(db, new Date('2026-10-17T10:00:00Z'))
     expect(backup).toMatchObject({ app: BACKUP_APP, format: 1, exportedAt: '2026-10-17T10:00:00.000Z' })
     expect(summarizeBackup(backup)).toEqual({ prayer: 6, collection: 1, verses: 3, bookmarks: 1 })
-    expect(backup.settings).toEqual({ theme: 'dark', showTranslation: true, englishOnly: false, arabicFontSize: 34 })
+    expect(backup.settings).toEqual({ theme: 'dark', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
   })
 
   it('restores everything after the data is wiped', async () => {
@@ -81,7 +81,7 @@ describe('backup', () => {
     expect(await db.lists.where('name').equals('Something else').count()).toBe(0)
     expect((await getListItems(mercy.id, db)).map((i) => i.verseKey)).toEqual(['39:53', '1:1'])
     expect(await db.bookmarks.get('lastRead')).toMatchObject({ verseKey: '2:255' })
-    expect(await getSettings(db)).toEqual({ theme: 'dark', showTranslation: true, englishOnly: false, arabicFontSize: 34 })
+    expect(await getSettings(db)).toEqual({ theme: 'dark', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
     expect(await db.verses.count()).toBe(VERSES.length)
   })
 
@@ -122,7 +122,9 @@ describe('backup', () => {
     const on = validateBackup({ ...base, settings: { englishOnly: true } }, () => true)
     expect(on.settings.englishOnly).toBe(true)
     const older = validateBackup({ ...base, settings: { theme: 'dark', showTranslation: false } }, () => true)
-    expect(older.settings).toMatchObject({ theme: 'dark', showTranslation: false, englishOnly: false })
+    expect(older.settings).toMatchObject({ theme: 'dark', showTranslation: false, englishOnly: false, readingMode: false })
+    const reading = validateBackup({ ...base, settings: { readingMode: true } }, () => true)
+    expect(reading.settings.readingMode).toBe(true)
   })
 
   it('falls back to defaults for unusable settings', () => {
@@ -137,7 +139,7 @@ describe('backup', () => {
       },
       () => true,
     )
-    expect(backup.settings).toEqual({ theme: 'system', showTranslation: true, englishOnly: false, arabicFontSize: 28 })
+    expect(backup.settings).toEqual({ theme: 'system', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 28 })
   })
 
   it('leaves the data untouched when a restore fails midway', async () => {

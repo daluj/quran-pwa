@@ -132,7 +132,7 @@ function AppearanceSection() {
 }
 
 function ReadingSection() {
-  const { showTranslation, englishOnly, arabicFontSize } = useSettings()
+  const { showTranslation, englishOnly, readingMode, arabicFontSize } = useSettings()
   const sizeId = useId()
 
   return (
@@ -149,6 +149,12 @@ function ReadingSection() {
         hint="Hides the Arabic text."
         checked={englishOnly}
         onChange={(on) => void setSetting('englishOnly', on)}
+      />
+      <Switch
+        label="Reading mode"
+        hint="The Quran shows only each verse's number and text."
+        checked={readingMode}
+        onChange={(on) => void setSetting('readingMode', on)}
       />
 
       <div className="py-2">
