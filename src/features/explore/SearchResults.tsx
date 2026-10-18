@@ -3,7 +3,7 @@ import { memo, useState } from 'react'
 import { Link } from 'react-router'
 import { Highlighted } from '../../components/Highlighted'
 import type { Verse } from '../../data/types'
-import { useSettings } from '../../db/settings'
+import { useSettings, useTextVisibility } from '../../db/settings'
 import type { ReferenceResult } from '../../lib/reference'
 import { highlightRanges, MIN_QUERY_LENGTH, type SearchQuery } from '../../lib/search'
 
@@ -74,7 +74,8 @@ export function SearchResults({ text, reference, query, results }: SearchResults
 }
 
 const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; query: SearchQuery }) {
-  const { arabicFontSize, showTranslation } = useSettings()
+  const { arabicFontSize } = useSettings()
+  const visible = useTextVisibility()
   const arabic = query.script === 'arabic'
 
   return (
@@ -87,15 +88,21 @@ const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; qu
           <span className="text-muted"> · {verse.key}</span>
         </Link>
       </p>
-      <p
-        lang="ar"
-        className="quran-text mt-1"
-        style={{ ['--arabic-font-size' as string]: `${arabicFontSize}px` }}
-      >
-        {arabic ? <Highlighted text={verse.textArabic} ranges={highlightRanges(verse.textArabic, query)} /> : verse.textArabic}
-      </p>
-      {/* A translation match is always shown, even with translations turned off. */}
-      {(showTranslation || !arabic) && (
+      {/* The text that matched is always shown, whatever the reading settings. */}
+      {(visible.arabic || arabic) && (
+        <p
+          lang="ar"
+          className="quran-text mt-1"
+          style={{ ['--arabic-font-size' as string]: `${arabicFontSize}px` }}
+        >
+          {arabic ? (
+            <Highlighted text={verse.textArabic} ranges={highlightRanges(verse.textArabic, query)} />
+          ) : (
+            verse.textArabic
+          )}
+        </p>
+      )}
+      {(visible.english || !arabic) && (
         <p className="mt-1 text-[15px] leading-relaxed">
           {arabic ? (
             verse.translation

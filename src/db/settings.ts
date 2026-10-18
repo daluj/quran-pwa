@@ -16,9 +16,23 @@ export async function setSetting<K extends SettingKey>(
   await database.settings.put({ key, value })
 }
 
+export interface TextVisibility {
+  arabic: boolean
+  english: boolean
+}
+
+/** Which texts a verse shows. English-only always shows the translation. */
+export function textVisibility({ showTranslation, englishOnly }: Settings): TextVisibility {
+  return { arabic: !englishOnly, english: englishOnly || showTranslation }
+}
+
 /** Live settings, provided by SettingsProvider (loaded before the app renders). */
 export const SettingsContext = createContext<Settings>(DEFAULT_SETTINGS)
 
 export function useSettings(): Settings {
   return useContext(SettingsContext)
+}
+
+export function useTextVisibility(): TextVisibility {
+  return textVisibility(useSettings())
 }

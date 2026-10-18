@@ -8,7 +8,7 @@ import { Header } from '../../components/layout/Header'
 import type { List, ListType } from '../../db/db'
 import { useList, useListEntries, type ListEntry } from '../../db/listHooks'
 import { deleteList, MAX_LIST_NAME, moveVerse, removeVerse, renameList } from '../../db/lists'
-import { useSettings } from '../../db/settings'
+import { useSettings, useTextVisibility } from '../../db/settings'
 import { LIST_LABELS, verseCountLabel } from './labels'
 
 /** One prayer topic or collection: its verses as a feed, with editing. */
@@ -78,7 +78,8 @@ export function ListDetailPage({ type }: { type: ListType }) {
 }
 
 function Entries({ list, entries }: { list: List; entries: ListEntry[] }) {
-  const { arabicFontSize, showTranslation } = useSettings()
+  const { arabicFontSize } = useSettings()
+  const { arabic: showArabic, english: showEnglish } = useTextVisibility()
   const labels = LIST_LABELS[list.type]
 
   if (entries.length === 0) {
@@ -105,10 +106,12 @@ function Entries({ list, entries }: { list: List; entries: ListEntry[] }) {
               <span className="font-bold">Surah {verse.surah}</span>
               <span className="text-muted"> · {verse.key}</span>
             </p>
-            <p lang="ar" className="quran-text mt-1">
-              {verse.textArabic}
-            </p>
-            {showTranslation && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
+            {showArabic && (
+              <p lang="ar" className="quran-text mt-1">
+                {verse.textArabic}
+              </p>
+            )}
+            {showEnglish && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
 
             <div role="group" aria-label={`Actions for verse ${verse.key}`} className="-ml-2 mt-1 flex flex-wrap gap-1">
               <IconAction

@@ -33,6 +33,8 @@ export type ThemePreference = 'system' | 'light' | 'dark'
 export interface Settings {
   theme: ThemePreference
   showTranslation: boolean
+  /** Hide the Arabic and show only the translation (overrides showTranslation). */
+  englishOnly: boolean
   /** Arabic font size in px */
   arabicFontSize: number
 }
@@ -55,6 +57,7 @@ export const ARABIC_FONT_SIZE = { min: 20, max: 48, step: 2 }
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   showTranslation: true,
+  englishOnly: false,
   arabicFontSize: 28,
 }
 

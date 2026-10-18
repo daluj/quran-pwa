@@ -7,7 +7,8 @@ import type { ListType } from '../../db/db'
 interface VerseCardProps {
   verse: Verse
   surah: Surah
-  showTranslation: boolean
+  showArabic: boolean
+  showEnglish: boolean
   isLastRead: boolean
   isLastRecited: boolean
   savedInCollection: boolean
@@ -21,7 +22,8 @@ interface VerseCardProps {
 export const VerseCard = memo(function VerseCard({
   verse,
   surah,
-  showTranslation,
+  showArabic,
+  showEnglish,
   isLastRead,
   isLastRecited,
   savedInCollection,
@@ -45,10 +47,12 @@ export const VerseCard = memo(function VerseCard({
           <span className="font-bold">Surah {surah.number}</span>
           <span className="text-muted"> · {verse.key}</span>
         </p>
-        <p lang="ar" className="quran-text mt-1">
-          {verse.textArabic}
-        </p>
-        {showTranslation && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
+        {showArabic && (
+          <p lang="ar" className="quran-text mt-1">
+            {verse.textArabic}
+          </p>
+        )}
+        {showEnglish && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
 
         <div role="group" aria-label={`Actions for verse ${verse.key}`} className="-ml-2 mt-1 flex max-w-md justify-between">
           <ActionButton

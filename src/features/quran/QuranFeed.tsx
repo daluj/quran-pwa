@@ -5,7 +5,7 @@ import type { Surah } from '../../data/types'
 import { useBookmarks } from '../../db/bookmarks'
 import type { ListType } from '../../db/db'
 import { useSavedVerseKeys } from '../../db/listHooks'
-import { useSettings } from '../../db/settings'
+import { useSettings, useTextVisibility } from '../../db/settings'
 import { SaveSheet, type SaveTarget } from '../lists/SaveSheet'
 import { scrollRowFor, type Feed, type FeedRow } from './feed'
 import { SurahHeader } from './SurahHeader'
@@ -29,7 +29,8 @@ interface QuranFeedProps {
 }
 
 export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSurahChange }: QuranFeedProps) {
-  const { arabicFontSize, showTranslation } = useSettings()
+  const { arabicFontSize } = useSettings()
+  const { arabic: showArabic, english: showEnglish } = useTextVisibility()
   const bookmarks = useBookmarks()
   const saved = useSavedVerseKeys()
   const [saveTarget, setSaveTarget] = useState<SaveTarget | null>(null)
@@ -62,7 +63,7 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
 
   const virtualizer = useWindowVirtualizer({
     count: feed.rows.length,
-    estimateSize: (i) => estimateRowHeight(feed.rows[i]!, width, arabicFontSize, showTranslation),
+    estimateSize: (i) => estimateRowHeight(feed.rows[i]!, width, arabicFontSize, showArabic, showEnglish),
     getItemKey: (i) => rowKey(feed.rows[i]!),
     overscan: 6,
     scrollMargin,
@@ -90,22 +91,27 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
     }
   }, [virtualizer, headerHeight])
 
-  // Row heights depend on the column width, font size and translation: when
+  // Row heights depend on the column width, font size and visible texts: when
   // any of them changes, drop the measured sizes and keep the top row in place.
-  const layout = useRef({ width, arabicFontSize, showTranslation })
+  const layout = useRef({ width, arabicFontSize, showArabic, showEnglish })
   useEffect(() => {
     const prev = layout.current
-    layout.current = { width, arabicFontSize, showTranslation }
+    layout.current = { width, arabicFontSize, showArabic, showEnglish }
     // The first width measurement isn't a change (and must keep a restored cache).
     if (prev.width === 0) return
-    if (prev.width === width && prev.arabicFontSize === arabicFontSize && prev.showTranslation === showTranslation) {
+    if (
+      prev.width === width &&
+      prev.arabicFontSize === arabicFontSize &&
+      prev.showArabic === showArabic &&
+      prev.showEnglish === showEnglish
+    ) {
       return
     }
     const anchor =
       anchorRef.current ?? topRowIndex(virtualizer.getVirtualItems(), virtualizer.scrollOffset, headerHeight)
     virtualizer.measure()
     if (anchor !== undefined && anchor > 0) virtualizer.scrollToIndex(anchor, { align: 'start' })
-  }, [width, arabicFontSize, showTranslation, headerHeight, virtualizer])
+  }, [width, arabicFontSize, showArabic, showEnglish, headerHeight, virtualizer])
 
   // Restore the previous position (or start at the top) when the feed opens.
   useLayoutEffect(() => {
@@ -168,12 +174,13 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
             return (
               <div key={item.key} data-index={item.index} ref={virtualizer.measureElement}>
                 {row.kind === 'surah' ? (
-                  <SurahHeader surah={row.surah} bismillah={meta.bismillah} />
+                  <SurahHeader surah={row.surah} bismillah={showArabic ? meta.bismillah : undefined} />
                 ) : (
                   <VerseCard
                     verse={row.verse}
                     surah={row.surah}
-                    showTranslation={showTranslation}
+                    showArabic={showArabic}
+                    showEnglish={showEnglish}
                     isLastRead={bookmarks.lastRead === row.verse.key}
                     isLastRecited={bookmarks.lastRecited === row.verse.key}
                     savedInCollection={saved.collection.has(row.verse.key)}
@@ -207,15 +214,23 @@ function rowKey(row: FeedRow): string {
  * Rough row height before measuring. Good estimates keep the scrollbar steady
  * and make deep-link jumps land close to the target before rows are measured.
  */
-function estimateRowHeight(row: FeedRow, width: number, fontSize: number, showTranslation: boolean): number {
+function estimateRowHeight(
+  row: FeedRow,
+  width: number,
+  fontSize: number,
+  showArabic: boolean,
+  showEnglish: boolean,
+): number {
   const lineHeight = fontSize * 2.2
   if (row.kind === 'surah') {
-    return 150 + (row.surah.bismillah ? lineHeight + 12 : 0)
+    return 150 + (row.surah.bismillah && showArabic ? lineHeight + 12 : 0)
   }
   // Card padding (32) and the verse-number column (52). Before the first
   // measurement the width is 0; assume the desktop column.
   const textWidth = Math.max((width || 600) - 84, 160)
-  const arabicLines = Math.max(1, Math.ceil((row.verse.textArabicPlain.length * fontSize * 0.42) / textWidth))
-  const translationLines = showTranslation ? Math.ceil((row.verse.translation.length * 7.6) / textWidth) : 0
+  const arabicLines = showArabic
+    ? Math.max(1, Math.ceil((row.verse.textArabicPlain.length * fontSize * 0.42) / textWidth))
+    : 0
+  const translationLines = showEnglish ? Math.ceil((row.verse.translation.length * 7.6) / textWidth) : 0
   return 12 + 22 + 4 + arabicLines * lineHeight + translationLines * 24.4 + 4 + 42 + 1
 }

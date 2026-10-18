@@ -3,7 +3,8 @@ import type { Surah } from '../../data/types'
 
 interface SurahHeaderProps {
   surah: Surah
-  bismillah: string
+  /** Arabic Bismillah, or undefined to leave it out (e.g. English only). */
+  bismillah: string | undefined
 }
 
 /** Feed row that opens each surah: number, verse count and Bismillah. */
@@ -20,7 +21,7 @@ export const SurahHeader = memo(function SurahHeader({ surah, bismillah }: Surah
       <p className="text-sm text-muted">
         {surah.verseCount} {surah.verseCount === 1 ? 'verse' : 'verses'}
       </p>
-      {surah.bismillah && (
+      {surah.bismillah && bismillah && (
         <p lang="ar" className="quran-text mt-3 text-center!">
           {bismillah}
         </p>

@@ -381,6 +381,28 @@ describe('Settings', () => {
     await db.settings.clear()
   })
 
+  it('shows only the English translation everywhere', async () => {
+    const router = renderApp('/settings')
+    fireEvent.click(await screen.findByRole('switch', { name: 'Only show English translation' }))
+    const translation = screen.getByRole('switch', { name: 'Show English translation' })
+    await vi.waitFor(() => expect(translation).toHaveProperty('disabled', true))
+    expect(translation.getAttribute('aria-checked')).toBe('true')
+
+    // Feed: translation shown, no Arabic, no Arabic Bismillah in surah headers.
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Quran' }))
+    await router.navigate('/quran/2/1')
+    const card = await screen.findByRole('article', { name: 'Surah 2, verse 1' })
+    expect(within(card).getByText('A. L. M.')).toBeTruthy()
+    expect(document.querySelectorAll('main p[lang="ar"]')).toHaveLength(0)
+
+    // An Arabic search still shows the Arabic it matched.
+    await router.navigate('/explore?q=' + encodeURIComponent('الحمد لله'))
+    await screen.findByText(/in the Arabic/)
+    expect(document.querySelectorAll('ol[aria-label="Search results"] p[lang="ar"]').length).toBeGreaterThan(0)
+
+    await db.settings.clear()
+  })
+
   it('picks a theme', async () => {
     renderApp('/settings')
     fireEvent.click(await screen.findByRole('radio', { name: 'Dark' }))

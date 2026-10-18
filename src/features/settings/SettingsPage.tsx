@@ -44,6 +44,56 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
+function Switch({
+  label,
+  hint,
+  checked,
+  disabled = false,
+  onChange,
+}: {
+  label: string
+  hint?: string
+  checked: boolean
+  disabled?: boolean
+  onChange: (checked: boolean) => void
+}) {
+  const labelId = useId()
+  const hintId = useId()
+  return (
+    <div className="flex items-center justify-between gap-4 py-2">
+      <span className="min-w-0">
+        <span id={labelId} className="block text-[15px]">
+          {label}
+        </span>
+        {hint && (
+          <span id={hintId} className="block text-sm text-muted">
+            {hint}
+          </span>
+        )}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={labelId}
+        aria-describedby={hint ? hintId : undefined}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+          checked ? 'bg-accent' : 'bg-border'
+        }`}
+      >
+        <span
+          aria-hidden="true"
+          className={`absolute top-1 left-1 size-5 rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-5' : ''
+          }`}
+        />
+      </button>
+    </div>
+  )
+}
+
 const THEMES: { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
@@ -82,31 +132,24 @@ function AppearanceSection() {
 }
 
 function ReadingSection() {
-  const { showTranslation, arabicFontSize } = useSettings()
+  const { showTranslation, englishOnly, arabicFontSize } = useSettings()
   const sizeId = useId()
 
   return (
     <Section title="Reading">
-      <div className="flex items-center justify-between gap-4 py-2">
-        <span id="translation-label" className="text-[15px]">
-          Show English translation
-        </span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={showTranslation}
-          aria-labelledby="translation-label"
-          onClick={() => void setSetting('showTranslation', !showTranslation)}
-          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${showTranslation ? 'bg-accent' : 'bg-border'}`}
-        >
-          <span
-            aria-hidden="true"
-            className={`absolute top-1 left-1 size-5 rounded-full bg-white shadow transition-transform ${
-              showTranslation ? 'translate-x-5' : ''
-            }`}
-          />
-        </button>
-      </div>
+      <Switch
+        label="Show English translation"
+        checked={showTranslation || englishOnly}
+        disabled={englishOnly}
+        hint={englishOnly ? 'Always shown while only the English is shown.' : undefined}
+        onChange={(on) => void setSetting('showTranslation', on)}
+      />
+      <Switch
+        label="Only show English translation"
+        hint="Hides the Arabic text."
+        checked={englishOnly}
+        onChange={(on) => void setSetting('englishOnly', on)}
+      />
 
       <div className="py-2">
         <div className="flex items-center justify-between">
