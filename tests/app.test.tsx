@@ -10,7 +10,7 @@ import { DataProvider } from '../src/app/DataProvider'
 import { routes } from '../src/app/router'
 import { db } from '../src/db/db'
 import { SettingsProvider } from '../src/db/SettingsProvider'
-import { addVerse, getListItems } from '../src/db/lists'
+import { addVerse, createList, getListItems } from '../src/db/lists'
 import { ThemeProvider } from '../src/theme/ThemeProvider'
 
 const versesJson = readFileSync(join(import.meta.dirname, '..', 'src', 'data', 'verses.json'), 'utf8')
@@ -120,7 +120,7 @@ describe('app shell', () => {
     await screen.findByText('Praise be to God, Lord of the Worlds.')
     fireEvent.click(within(mainNav()).getByRole('link', { name: 'Prayers' }))
     expect(router.state.location.pathname).toBe('/prayers')
-    for (const topic of ['Forgiveness', 'Guidance', 'Protection', 'Gratitude', 'Patience', 'Mercy']) {
+    for (const topic of ['Forgiveness', 'Guidance', 'Protection', 'Gratitude', 'Patience', 'Provisions', 'Knowledge']) {
       expect(await screen.findByText(topic)).toBeTruthy()
     }
     fireEvent.click(within(mainNav()).getByRole('link', { name: 'Explore' }))
@@ -247,24 +247,26 @@ describe('lists', () => {
     const card = screen.getByRole('article', { name: 'Surah 1, verse 6' })
     fireEvent.click(within(card).getByRole('button', { name: 'Save to prayers' }))
     const sheet = await screen.findByRole('dialog', { name: 'Save to prayers · 1:6' })
-    fireEvent.click(await within(sheet).findByRole('checkbox', { name: /Guidance/ }))
-    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Mercy/ }))
+    // 1:6 is already in the default Guidance topic.
+    expect((await within(sheet).findByRole('checkbox', { name: /Guidance/ }) as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Knowledge/ }))
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Provisions/ }))
     await vi.waitFor(async () => {
       const lists = await db.lists.where('type').equals('prayer').toArray()
       const withVerse = await db.listItems.where('verseKey').equals('1:6').toArray()
       const names = withVerse.map((i) => lists.find((l) => l.id === i.listId)?.name).sort()
-      expect(names).toEqual(['Guidance', 'Mercy'])
+      expect(names).toEqual(['Guidance', 'Knowledge', 'Provisions'])
     })
   })
 
   it('reorders, removes, renames and deletes a prayer topic', async () => {
-    const patience = (await db.lists.where('name').equals('Patience').first())!
+    const patience = await createList('prayer', 'Steadfastness')
     for (const key of ['2:153', '2:155', '3:200']) await addVerse(patience.id, key)
 
     const router = renderApp('/prayers')
-    fireEvent.click(await screen.findByRole('link', { name: /Patience\s*3 verses/ }))
+    fireEvent.click(await screen.findByRole('link', { name: /Steadfastness\s*3 verses/ }))
     expect(router.state.location.pathname).toBe(`/prayers/${patience.id}`)
-    expect(await screen.findByRole('heading', { level: 1, name: 'Patience' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Steadfastness' })).toBeTruthy()
 
     const order = () => screen.getAllByRole('article').map((a) => a.getAttribute('aria-label'))
     await screen.findByRole('article', { name: 'Surah 3, verse 200' })
@@ -275,7 +277,7 @@ describe('lists', () => {
       expect(order()).toEqual(['Surah 2, verse 153', 'Surah 3, verse 200', 'Surah 2, verse 155']),
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove 2:153 from Patience' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove 2:153 from Steadfastness' }))
     await vi.waitFor(() => expect(order()).toEqual(['Surah 3, verse 200', 'Surah 2, verse 155']))
     expect((await getListItems(patience.id)).map((i) => i.verseKey)).toEqual(['3:200', '2:155'])
 
@@ -389,7 +391,7 @@ describe('Settings', () => {
   })
 
   it('exports a backup and restores it after confirmation', async () => {
-    const mercy = (await db.lists.where('name').equals('Mercy').first())!
+    const mercy = (await db.lists.where('name').equals('Knowledge').first())!
     await addVerse(mercy.id, '39:53')
 
     let exported = ''

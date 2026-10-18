@@ -3,7 +3,7 @@ import surahs from '../data/surahs.json'
 import type { QuranMeta, Surah, Verse } from '../data/types'
 import versesUrl from '../data/verses.json?url'
 import { db } from './db'
-import { seedDefaultTopics, seedQuranData } from './seed'
+import { seedDefaultLists, seedQuranData } from './seed'
 
 /** Ask the browser not to evict our data under storage pressure. */
 async function requestPersistentStorage(): Promise<void> {
@@ -29,7 +29,7 @@ export function initDatabase(): Promise<void> {
   initPromise ??= (async () => {
     void requestPersistentStorage()
     await seedQuranData(db, { meta: meta as QuranMeta, surahs: surahs as Surah[], loadVerses })
-    await seedDefaultTopics(db)
+    await seedDefaultLists(db)
   })()
   // Allow a retry after a failure.
   initPromise.catch(() => {

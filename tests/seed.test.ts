@@ -7,8 +7,10 @@ import { QuranDB } from '../src/db/db'
 import { getSettings, setSetting } from '../src/db/settings'
 import {
   DATA_VERSION_KEY,
-  DEFAULT_PRAYER_TOPICS,
-  seedDefaultTopics,
+  DEFAULT_LISTS,
+  DEFAULT_LISTS_KEY,
+  LEGACY_DEFAULT_TOPICS_KEY,
+  seedDefaultLists,
   seedQuranData,
   type QuranSource,
 } from '../src/db/seed'
@@ -53,7 +55,7 @@ describe('seedQuranData', () => {
 
   it('re-seeds when the data version changes, keeping user data', async () => {
     await seedQuranData(db, source())
-    await seedDefaultTopics(db)
+    await seedDefaultLists(db)
     await db.bookmarks.put({ type: 'lastRead', verseKey: '2:255', updatedAt: 1 })
 
     const changed = verses.map((v) => (v.key === '1:1' ? { ...v, translation: 'updated' } : v))
@@ -65,7 +67,7 @@ describe('seedQuranData', () => {
     expect(result).toBe('seeded')
     expect((await db.verses.get('1:1'))?.translation).toBe('updated')
     expect(await db.verses.count()).toBe(6236)
-    expect(await db.lists.count()).toBe(DEFAULT_PRAYER_TOPICS.length)
+    expect(await db.lists.count()).toBe(DEFAULT_LISTS.length)
     expect(await db.bookmarks.get('lastRead')).toBeDefined()
   })
 
@@ -77,19 +79,46 @@ describe('seedQuranData', () => {
   })
 })
 
-describe('seedDefaultTopics', () => {
-  it('creates the six default prayer topics in order', async () => {
-    expect(await seedDefaultTopics(db)).toBe(true)
-    const lists = await db.lists.orderBy('name').toArray()
-    expect(lists.every((l) => l.type === 'prayer' && l.isDefault)).toBe(true)
-    const byCreation = (await db.lists.toArray()).sort((a, b) => a.createdAt - b.createdAt).map((l) => l.name)
-    expect(byCreation).toEqual(DEFAULT_PRAYER_TOPICS)
+describe('default lists', () => {
+  const verseKeys = new Set(verses.map((v) => v.key))
+
+  it('only uses verses that exist, once per list, with unique names per type', () => {
+    for (const list of DEFAULT_LISTS) {
+      expect(['prayer', 'collection'], list.name).toContain(list.type)
+      expect(list.verses.filter((k) => !verseKeys.has(k)), list.name).toEqual([])
+      expect(new Set(list.verses).size, list.name).toBe(list.verses.length)
+    }
+    for (const type of ['prayer', 'collection']) {
+      const names = DEFAULT_LISTS.filter((l) => l.type === type).map((l) => l.name.toLowerCase())
+      expect(new Set(names).size).toBe(names.length)
+    }
   })
 
-  it('does not recreate topics the user deleted', async () => {
-    await seedDefaultTopics(db)
+  it('creates every default list with its verses, in order', async () => {
+    expect(await seedDefaultLists(db)).toBe(true)
+    const lists = (await db.lists.toArray()).sort((a, b) => a.createdAt - b.createdAt)
+    expect(lists.map((l) => [l.type, l.name])).toEqual(DEFAULT_LISTS.map((l) => [l.type, l.name]))
+    expect(lists.every((l) => l.isDefault)).toBe(true)
+
+    for (const [i, list] of lists.entries()) {
+      const items = await db.listItems.where('[listId+position]').between([list.id, -Infinity], [list.id, Infinity]).toArray()
+      expect(items.map((it) => it.verseKey), list.name).toEqual(DEFAULT_LISTS[i]!.verses)
+    }
+    expect(await db.listItems.count()).toBe(DEFAULT_LISTS.reduce((n, l) => n + l.verses.length, 0))
+  })
+
+  it('does not recreate lists the user deleted', async () => {
+    await seedDefaultLists(db)
     await db.lists.clear()
-    expect(await seedDefaultTopics(db)).toBe(false)
+    await db.listItems.clear()
+    expect(await seedDefaultLists(db)).toBe(false)
+    expect(await db.lists.count()).toBe(0)
+    expect((await db.meta.get(DEFAULT_LISTS_KEY))?.value).toBeDefined()
+  })
+
+  it('leaves installs that got the older default topics alone', async () => {
+    await db.meta.put({ key: LEGACY_DEFAULT_TOPICS_KEY, value: '1' })
+    expect(await seedDefaultLists(db)).toBe(false)
     expect(await db.lists.count()).toBe(0)
   })
 })

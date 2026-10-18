@@ -18,6 +18,14 @@ export interface Surah {
   bismillah: boolean
 }
 
+/** A prayer topic or collection created on first launch (src/data/default-lists.json). */
+export interface DefaultList {
+  type: 'prayer' | 'collection'
+  name: string
+  /** Verse keys in list order. */
+  verses: string[]
+}
+
 export interface QuranMeta {
   /** Content hash of the generated data; changes trigger a re-seed. */
   version: string

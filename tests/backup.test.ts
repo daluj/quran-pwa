@@ -12,7 +12,7 @@ import {
 import { toggleBookmark } from '../src/db/bookmarks'
 import { QuranDB } from '../src/db/db'
 import { addVerse, createList, getListItems } from '../src/db/lists'
-import { seedDefaultTopics } from '../src/db/seed'
+import { seedDefaultLists } from '../src/db/seed'
 import { getSettings, setSetting } from '../src/db/settings'
 
 let db: QuranDB
@@ -35,7 +35,14 @@ afterEach(async () => {
 })
 
 async function sampleData() {
-  await seedDefaultTopics(db)
+  await seedDefaultLists(
+    db,
+    ['Forgiveness', 'Guidance', 'Protection', 'Gratitude', 'Patience', 'Mercy'].map((name) => ({
+      type: 'prayer' as const,
+      name,
+      verses: [],
+    })),
+  )
   const mercy = (await db.lists.where('name').equals('Mercy').first())!
   await addVerse(mercy.id, '39:53', db)
   await addVerse(mercy.id, '1:1', db)

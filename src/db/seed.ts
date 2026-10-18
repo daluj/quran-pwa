@@ -1,10 +1,14 @@
-import type { QuranMeta, Surah, Verse } from '../data/types'
-import type { List, QuranDB } from './db'
+import defaultLists from '../data/default-lists.json'
+import type { DefaultList, QuranMeta, Surah, Verse } from '../data/types'
+import type { List, ListItem, QuranDB } from './db'
 
 export const DATA_VERSION_KEY = 'quranDataVersion'
-export const DEFAULT_TOPICS_KEY = 'defaultTopicsSeeded'
+export const DEFAULT_LISTS_KEY = 'defaultListsSeeded'
+/** Recorded by installs from before the default collections existed. */
+export const LEGACY_DEFAULT_TOPICS_KEY = 'defaultTopicsSeeded'
 
-export const DEFAULT_PRAYER_TOPICS = ['Forgiveness', 'Guidance', 'Protection', 'Gratitude', 'Patience', 'Mercy']
+/** Prayer topics and collections, with their verses, created on first launch. */
+export const DEFAULT_LISTS = defaultLists as DefaultList[]
 
 export interface QuranSource {
   meta: QuranMeta
@@ -40,23 +44,31 @@ export async function seedQuranData(db: QuranDB, source: QuranSource): Promise<S
 }
 
 /**
- * Create the default prayer topics once. If the user later renames or deletes
- * them, they aren't recreated.
+ * Create the default prayer topics and collections, with their verses, on
+ * first launch. If the user later renames or deletes them, they aren't
+ * recreated. Installs that already got the older six default topics are left
+ * as they are, so nothing is duplicated.
  */
-export async function seedDefaultTopics(db: QuranDB, now = Date.now()): Promise<boolean> {
-  return db.transaction('rw', db.lists, db.meta, async () => {
-    if (await db.meta.get(DEFAULT_TOPICS_KEY)) return false
-    const topics: List[] = DEFAULT_PRAYER_TOPICS.map((name, i) => ({
-      id: crypto.randomUUID(),
-      name,
-      type: 'prayer',
-      isDefault: true,
-      // Distinct timestamps keep the default order when sorting by createdAt.
-      createdAt: now + i,
-      updatedAt: now + i,
-    }))
-    await db.lists.bulkAdd(topics)
-    await db.meta.put({ key: DEFAULT_TOPICS_KEY, value: String(now) })
+export async function seedDefaultLists(
+  db: QuranDB,
+  defaults: DefaultList[] = DEFAULT_LISTS,
+  now = Date.now(),
+): Promise<boolean> {
+  return db.transaction('rw', db.lists, db.listItems, db.meta, async () => {
+    if ((await db.meta.get(DEFAULT_LISTS_KEY)) || (await db.meta.get(LEGACY_DEFAULT_TOPICS_KEY))) return false
+    const lists: List[] = []
+    const items: ListItem[] = []
+    defaults.forEach(({ type, name, verses }, i) => {
+      // Distinct timestamps keep the defaults in this order when sorting by createdAt.
+      const list: List = { id: crypto.randomUUID(), name, type, isDefault: true, createdAt: now + i, updatedAt: now + i }
+      lists.push(list)
+      verses.forEach((verseKey, position) =>
+        items.push({ id: crypto.randomUUID(), listId: list.id, verseKey, position, addedAt: now + i }),
+      )
+    })
+    await db.lists.bulkAdd(lists)
+    await db.listItems.bulkAdd(items)
+    await db.meta.put({ key: DEFAULT_LISTS_KEY, value: String(now) })
     return true
   })
 }
