@@ -2,8 +2,39 @@
 
 Offline-first Quran reading PWA (React + TypeScript + Vite, Dexie/IndexedDB,
 Tailwind, Workbox). No backend, no accounts: everything lives on the device.
-[SPEC.md](SPEC.md) is the source of truth for behaviour; [README.md](README.md)
-covers setup and structure.
+The project is spec-driven: [`specs/`](specs/) is the source of truth for what
+the app does and why. [README.md](README.md) covers setup and structure.
+
+## Specs
+
+- [`specs/mission.md`](specs/mission.md): purpose, audience, principles.
+- [`specs/tech-stack.md`](specs/tech-stack.md): stack, tooling, known gaps.
+- [`specs/roadmap.md`](specs/roadmap.md): small phases with checkboxes; each
+  links to its spec folder.
+- `specs/YYYY-MM-DD-<feature>/`: `requirements.md` (scope, decisions,
+  context), `plan.md` (numbered task groups), `validation.md` (checks and
+  definition of done).
+
+## Spec-driven workflow
+
+1. **Spec first.** For new work, use the `feature-spec` skill (`/feature-spec`):
+   it finds the next roadmap phase, interviews the owner (3 grouped
+   questions) and writes the spec folder. Don't write code before the owner
+   approves the spec.
+2. **Implement** the plan group by group, checking off `[ ]` tasks in
+   `plan.md` as they're done.
+3. **Keep the spec true.** If a decision changes while implementing, update
+   `requirements.md` / `plan.md` first, then the code.
+4. **Validate** against `validation.md`: `/verify`, the specific tests, and the
+   manual browser checks. Tick each item.
+5. **Close the phase:** check it off in `roadmap.md`, update `CHANGELOG.md`
+   (`changelog` skill, `## Unreleased`), and update `tech-stack.md`, README or
+   this file if the stack or conventions changed.
+6. **Hand over:** summarize and suggest a commit message; the owner reviews
+   and commits.
+7. **Replan** when priorities change: edit `roadmap.md` (keep phases small).
+
+Small fixes that don't change behaviour don't need a spec folder.
 
 ## Workflow rules
 
@@ -13,7 +44,7 @@ covers setup and structure.
 - Before saying a change is done, run `npm run lint`, `npm run typecheck` and
   `npm test` (or `/verify`, which also builds). For UI changes, also check it
   in the browser (`npm run build && npm run preview`).
-- Keep SPEC.md and README.md in sync when behaviour changes.
+- Keep `specs/` and README.md in sync when behaviour changes.
 
 ## Commands
 

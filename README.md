@@ -8,7 +8,9 @@ branding.
 Everything runs on the device: no backend, no accounts. After the first visit
 the app works fully offline and can be installed on Android, iOS and desktop.
 
-See [SPEC.md](SPEC.md) for the full specification.
+The project is built spec-first: [specs/](specs/) holds the mission, tech
+stack, roadmap and a spec for every feature (see
+[Spec-driven development](#spec-driven-development)).
 
 ## Features
 
@@ -79,6 +81,7 @@ this automatically when the output has no `404.html`.
 ## Project structure
 
 ```
+specs/               Mission, tech stack, roadmap, and a spec folder per feature
 data/raw/            Raw Tanzil files (never edited) and SOURCES.md
 scripts/             build-quran-data.ts: parses, validates, writes src/data/
 src/
@@ -91,8 +94,9 @@ src/
   styles/            Tailwind and theme tokens
   theme/             Light/dark theme provider
 tests/               Vitest tests
-.claude/             Shared Claude Code settings and commands
+.claude/             Shared Claude Code settings, commands and skills
 CLAUDE.md            Instructions for Claude Code
+CHANGELOG.md         Changes by date
 ```
 
 ## Data
@@ -117,15 +121,51 @@ User data (lists, bookmarks, settings) lives only in the browser's IndexedDB.
 The app asks the browser for persistent storage, and Settings offers backup
 export and import.
 
+## Spec-driven development
+
+The project follows spec-driven development as taught in DeepLearning.AI's
+[Spec-Driven Development with Coding Agents](https://www.deeplearning.ai/courses/spec-driven-development-with-coding-agents):
+specs in Markdown say what to build before any code is written, so coding
+agents implement the intended behaviour and the context survives between
+sessions.
+
+```
+specs/
+  mission.md                    Why the app exists, for whom, principles
+  tech-stack.md                 Stack, tooling, known gaps
+  roadmap.md                    Small phases with checkboxes, linking to their specs
+  YYYY-MM-DD-<feature>/
+    requirements.md             Scope, decisions, context
+    plan.md                     Numbered task groups
+    validation.md               Automated and manual checks, definition of done
+```
+
+The cycle for each roadmap phase:
+
+1. **Spec:** `/feature-spec` in Claude Code picks the next phase, asks three
+   questions (scope, decisions, context) and writes the spec folder.
+2. **Implement** the plan's task groups, keeping the spec up to date.
+3. **Validate** with `validation.md` (`/verify` plus manual browser checks).
+4. **Close:** check the phase off in the roadmap, update
+   [CHANGELOG.md](CHANGELOG.md) (`/changelog`), review and commit.
+5. **Replan** the roadmap when priorities change.
+
+Phases 1–9 were built before this workflow; their specs were backfilled from
+the original spec and the commits.
+
 ## Working with Claude Code
 
-[CLAUDE.md](CLAUDE.md) gives Claude Code the project's commands, architecture
-and conventions (surahs by number only, never editing `data/raw/`, Arabic
-escapes, how to add a setting). `.claude/settings.json` allows the usual
-checks and blocks `git commit` / `git push`: changes are left for review and
-committed by hand. Run `/verify` in Claude Code for lint, type-check, tests,
-build and a stale-data check. Personal overrides go in
-`.claude/settings.local.json` or `CLAUDE.local.md` (both git-ignored).
+[CLAUDE.md](CLAUDE.md) gives Claude Code the project's commands, architecture,
+conventions (surahs by number only, never editing `data/raw/`, Arabic
+escapes, how to add a setting) and the spec-driven workflow.
+
+- `.claude/settings.json` allows the usual checks and blocks `git commit` /
+  `git push`: changes are left for review and committed by hand.
+- `/verify` runs lint, type-check, tests, build and a stale-data check.
+- Skills: `feature-spec` (start the next phase from a spec) and `changelog`
+  (update `CHANGELOG.md` from git history).
+- Personal overrides go in `.claude/settings.local.json` or `CLAUDE.local.md`
+  (both git-ignored).
 
 ## License
 
