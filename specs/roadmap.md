@@ -131,7 +131,7 @@ Spec: [2026-10-21-spanish-translation](2026-10-21-spanish-translation/)
 - [x] `data/raw/es.translation.txt`: all 114 surahs, 6236 verses
 - [x] Contested verses listed for review
 - [ ] Reviewed by a qualified reader of Arabic
-- [ ] Reviewed and committed by the owner
+- [x] Reviewed and committed by the owner
 
 ---
 
