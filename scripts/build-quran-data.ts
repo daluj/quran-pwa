@@ -14,7 +14,10 @@ const outDir = join(root, 'src', 'data')
 try {
   const { verses, surahs, meta } = buildDataset(
     readFileSync(join(rawDir, 'quran-uthmani.txt'), 'utf8'),
-    readFileSync(join(rawDir, 'en.translation.txt'), 'utf8'),
+    {
+      en: readFileSync(join(rawDir, 'en.translation.txt'), 'utf8'),
+      es: readFileSync(join(rawDir, 'es.translation.txt'), 'utf8'),
+    },
   )
 
   mkdirSync(outDir, { recursive: true })

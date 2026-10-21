@@ -43,10 +43,12 @@
 
 ## Data Pipeline
 
-- Raw Tanzil files in `data/raw/` (never edited) →
+- Raw Tanzil files and the two translations (`en.translation.txt`,
+  `es.translation.txt`) in `data/raw/` (never edited) →
   `scripts/build-quran-data.ts` (pure logic in `scripts/quran-data.ts`) →
   generated, committed JSON in `src/data/` (`verses.json`, `surahs.json`,
-  `meta.json`)
+  `meta.json`); each verse carries `translations: { en, es }`, and the
+  `translationLanguage` setting picks which one the app shows
 - Runs before every production build; fails loudly on invalid data
 - The data version is a content hash; a new hash re-seeds verses and surahs
   on next launch without touching user tables
@@ -84,6 +86,9 @@
 
 ## Gaps / Future Considerations
 
+- **Spanish translation:** machine-made from the Arabic for this project and
+  not yet reviewed by a qualified reader of Arabic (Phase 11); Settings says
+  so. Both translations are precached (~0.9 MB more).
 - **Translation source:** the English translation's name, translator and
   license are placeholders (`data/raw/SOURCES.md`, `src/data/sources.ts`).
   Per the mission, this must be resolved before a public release.

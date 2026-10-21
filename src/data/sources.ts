@@ -5,11 +5,19 @@ export const SOURCES = {
     url: 'https://tanzil.net',
     license: 'Creative Commons Attribution 3.0',
   },
-  // TODO: placeholder until the translation's details are confirmed.
-  translation: {
-    name: 'Example English Translation (placeholder)',
-    translator: 'Unknown Translator (placeholder)',
-    url: 'https://example.com',
-    license: 'Unknown (placeholder)',
+  translations: {
+    // TODO: placeholder until the translation's details are confirmed.
+    en: {
+      name: 'Example English Translation (placeholder)',
+      translator: 'Unknown Translator (placeholder)',
+      license: 'Unknown (placeholder)',
+      note: undefined as string | undefined,
+    },
+    es: {
+      name: 'Spanish (Spain) translation',
+      translator: 'Claude (Anthropic), from the Arabic',
+      license: 'Made for this project',
+      note: 'Machine translation, not yet reviewed by a qualified reader of Arabic.',
+    },
   },
 }

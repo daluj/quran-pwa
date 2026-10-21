@@ -1,6 +1,6 @@
 import { Bookmark, FolderPlus, HandHeart, Mic, type LucideIcon } from 'lucide-react'
 import { memo } from 'react'
-import type { Surah, Verse } from '../../data/types'
+import type { Surah, TranslationLanguage, Verse } from '../../data/types'
 import { toggleBookmark } from '../../db/bookmarks'
 import type { ListType } from '../../db/db'
 
@@ -9,6 +9,7 @@ interface VerseCardProps {
   surah: Surah
   showArabic: boolean
   showEnglish: boolean
+  language: TranslationLanguage
   /** Only the verse number and text: no title line, no actions. */
   readingMode: boolean
   isLastRead: boolean
@@ -26,6 +27,7 @@ export const VerseCard = memo(function VerseCard({
   surah,
   showArabic,
   showEnglish,
+  language,
   readingMode,
   isLastRead,
   isLastRecited,
@@ -58,8 +60,8 @@ export const VerseCard = memo(function VerseCard({
           </p>
         )}
         {showEnglish && (
-          <p className={`text-[15px] leading-relaxed ${showArabic ? 'mt-1' : readingMode ? 'pt-2' : ''}`}>
-            {verse.translation}
+          <p lang={language} className={`text-[15px] leading-relaxed ${showArabic ? 'mt-1' : readingMode ? 'pt-2' : ''}`}>
+            {verse.translations[language]}
           </p>
         )}
 

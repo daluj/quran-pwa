@@ -8,6 +8,7 @@ import {
   type QuranDB,
   type Settings,
 } from './db'
+import { TRANSLATION_LANGUAGES, type TranslationLanguage } from '../data/types'
 import { getSettings } from './settings'
 
 // Backup file: everything the user created (lists, their verses, bookmarks,
@@ -137,6 +138,9 @@ export function validateBackup(raw: unknown, verseExists: (key: string) => boole
   const settings: Settings = { ...DEFAULT_SETTINGS }
   if (s.theme === 'system' || s.theme === 'light' || s.theme === 'dark') settings.theme = s.theme
   if (typeof s.showTranslation === 'boolean') settings.showTranslation = s.showTranslation
+  if (typeof s.translationLanguage === 'string' && Object.hasOwn(TRANSLATION_LANGUAGES, s.translationLanguage)) {
+    settings.translationLanguage = s.translationLanguage as TranslationLanguage
+  }
   if (typeof s.englishOnly === 'boolean') settings.englishOnly = s.englishOnly
   if (typeof s.readingMode === 'boolean') settings.readingMode = s.readingMode
   if (

@@ -2,6 +2,12 @@
 
 ## 2026-10-21
 
+- Add a translation language setting (English or Spanish) that applies to the feed, lists and search, included in backups
+- Rename the translation switches to "Show translation" and "Only show translation"
+- Credit the chosen translation in Settings, noting that the Spanish one is unreviewed
+
+## 2026-10-21
+
 - Add a Spanish (Spain) translation made from the Arabic (`data/raw/es.translation.txt`), with its guidelines, decisions and contested verses in `specs/2026-10-21-spanish-translation/`; not shown in the app yet
 
 ## 2026-10-20

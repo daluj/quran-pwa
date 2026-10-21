@@ -11,10 +11,11 @@ import {
 } from '../scripts/quran-data.ts'
 
 const raw = (name: string) => readFileSync(join(import.meta.dirname, '..', 'data', 'raw', name), 'utf8')
+const realTranslations = () => ({ en: raw('en.translation.txt'), es: raw('es.translation.txt') })
 
 /** A complete, valid file with fake text: 114 surahs of the real lengths. */
 function syntheticFile(text: (s: number, a: number) => string = (s, a) => `verse ${s}:${a}`): string {
-  const lengths = buildDataset(raw('quran-uthmani.txt'), raw('en.translation.txt')).surahs.map((s) => s.verseCount)
+  const lengths = buildDataset(raw('quran-uthmani.txt'), { en: raw('en.translation.txt'), es: raw('en.translation.txt') }).surahs.map((s) => s.verseCount)
   const lines: string[] = []
   lengths.forEach((n, i) => {
     for (let a = 1; a <= n; a++) lines.push(`${i + 1}|${a}|${text(i + 1, a)}`)
@@ -81,7 +82,7 @@ describe('stripBismillah', () => {
 })
 
 describe('buildDataset with the real data/raw files', () => {
-  const { verses, surahs, meta } = buildDataset(raw('quran-uthmani.txt'), raw('en.translation.txt'))
+  const { verses, surahs, meta } = buildDataset(raw('quran-uthmani.txt'), realTranslations())
 
   it('has every verse and surah', () => {
     expect(verses).toHaveLength(EXPECTED_VERSES)
@@ -111,13 +112,29 @@ describe('buildDataset with the real data/raw files', () => {
       key: '2:1',
       textArabic: 'الٓمٓ',
       textArabicPlain: 'الم',
-      translation: 'A. L. M.',
+      translations: { en: 'A. L. M.', es: 'Alif. Lam. Mim.' },
     })
   })
 
-  it('fails when the translation is invalid', () => {
-    expect(() => buildDataset(raw('quran-uthmani.txt'), syntheticFile().replace('114|6|', '114|7|'))).toThrow(
+  it('fills both translations for every verse', () => {
+    for (const v of verses) {
+      expect(v.translations.en, v.key).not.toBe('')
+      expect(v.translations.es, v.key).not.toBe('')
+    }
+    expect(verses.find((v) => v.key === '1:1')?.translations.es).toMatch(/Dios/)
+  })
+
+  it('has no bracketed or parenthesised words in the Spanish text', () => {
+    expect(verses.filter((v) => /[()[\]]/.test(v.translations.es)).map((v) => v.key)).toEqual([])
+  })
+
+  it('fails naming the file when a translation is invalid', () => {
+    const bad = syntheticFile().replace('114|6|', '114|7|')
+    expect(() => buildDataset(raw('quran-uthmani.txt'), { ...realTranslations(), en: bad })).toThrow(
       /en\.translation\.txt.*\n.*missing 114:6/,
+    )
+    expect(() => buildDataset(raw('quran-uthmani.txt'), { ...realTranslations(), es: bad })).toThrow(
+      /es\.translation\.txt.*\n.*missing 114:6/,
     )
   })
 })

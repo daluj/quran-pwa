@@ -78,7 +78,7 @@ export function ListDetailPage({ type }: { type: ListType }) {
 }
 
 function Entries({ list, entries }: { list: List; entries: ListEntry[] }) {
-  const { arabicFontSize } = useSettings()
+  const { arabicFontSize, translationLanguage } = useSettings()
   const { arabic: showArabic, english: showEnglish } = useTextVisibility()
   const labels = LIST_LABELS[list.type]
 
@@ -111,7 +111,11 @@ function Entries({ list, entries }: { list: List; entries: ListEntry[] }) {
                 {verse.textArabic}
               </p>
             )}
-            {showEnglish && <p className="mt-1 text-[15px] leading-relaxed">{verse.translation}</p>}
+            {showEnglish && (
+              <p lang={translationLanguage} className="mt-1 text-[15px] leading-relaxed">
+                {verse.translations[translationLanguage]}
+              </p>
+            )}
 
             <div role="group" aria-label={`Actions for verse ${verse.key}`} className="-ml-2 mt-1 flex flex-wrap gap-1">
               <IconAction

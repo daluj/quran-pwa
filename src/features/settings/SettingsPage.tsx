@@ -5,6 +5,7 @@ import { Dialog } from '../../components/Dialog'
 import { Header } from '../../components/layout/Header'
 import meta from '../../data/meta.json'
 import { SOURCES } from '../../data/sources'
+import { TRANSLATION_LANGUAGES, type TranslationLanguage } from '../../data/types'
 import {
   BackupError,
   backupFileName,
@@ -132,20 +133,38 @@ function AppearanceSection() {
 }
 
 function ReadingSection() {
-  const { showTranslation, englishOnly, readingMode, arabicFontSize } = useSettings()
+  const { showTranslation, englishOnly, readingMode, arabicFontSize, translationLanguage } = useSettings()
   const sizeId = useId()
+  const languageId = useId()
 
   return (
     <Section title="Reading">
+      <div className="flex items-center justify-between gap-4 py-2">
+        <label htmlFor={languageId} className="text-[15px]">
+          Translation language
+        </label>
+        <select
+          id={languageId}
+          value={translationLanguage}
+          onChange={(e) => void setSetting('translationLanguage', e.target.value as TranslationLanguage)}
+          className="rounded-md border border-border bg-bg px-2 py-1 text-[15px]"
+        >
+          {Object.entries(TRANSLATION_LANGUAGES).map(([code, name]) => (
+            <option key={code} value={code} lang={code}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </div>
       <Switch
-        label="Show English translation"
+        label="Show translation"
         checked={showTranslation || englishOnly}
         disabled={englishOnly}
-        hint={englishOnly ? 'Always shown while only the English is shown.' : undefined}
+        hint={englishOnly ? 'Always shown while only the translation is shown.' : undefined}
         onChange={(on) => void setSetting('showTranslation', on)}
       />
       <Switch
-        label="Only show English translation"
+        label="Only show translation"
         hint="Hides the Arabic text."
         checked={englishOnly}
         onChange={(on) => void setSetting('englishOnly', on)}
@@ -328,7 +347,9 @@ function usePersistedStorage(): boolean | undefined {
 }
 
 function AboutSection() {
-  const { arabic, translation } = SOURCES
+  const { translationLanguage } = useSettings()
+  const { arabic } = SOURCES
+  const translation = SOURCES.translations[translationLanguage]
   return (
     <Section title="About">
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
@@ -345,6 +366,7 @@ function AboutSection() {
           <span className="block text-sm text-muted">
             {translation.translator} · {translation.license}
           </span>
+          {translation.note && <span className="block text-sm text-muted">{translation.note}</span>}
         </dd>
         <dt className="text-muted">Version</dt>
         <dd>

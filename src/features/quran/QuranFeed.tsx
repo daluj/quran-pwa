@@ -1,7 +1,7 @@
 import { useWindowVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import meta from '../../data/meta.json'
-import type { Surah } from '../../data/types'
+import type { Surah, TranslationLanguage } from '../../data/types'
 import { useBookmarks } from '../../db/bookmarks'
 import type { ListType } from '../../db/db'
 import { useSavedVerseKeys } from '../../db/listHooks'
@@ -29,7 +29,7 @@ interface QuranFeedProps {
 }
 
 export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSurahChange }: QuranFeedProps) {
-  const { arabicFontSize, readingMode } = useSettings()
+  const { arabicFontSize, readingMode, translationLanguage } = useSettings()
   const { arabic: showArabic, english: showEnglish } = useTextVisibility()
   const bookmarks = useBookmarks()
   const saved = useSavedVerseKeys()
@@ -63,7 +63,7 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
 
   const virtualizer = useWindowVirtualizer({
     count: feed.rows.length,
-    estimateSize: (i) => estimateRowHeight(feed.rows[i]!, width, arabicFontSize, showArabic, showEnglish, readingMode),
+    estimateSize: (i) => estimateRowHeight(feed.rows[i]!, width, arabicFontSize, showArabic, showEnglish, readingMode, translationLanguage),
     getItemKey: (i) => rowKey(feed.rows[i]!),
     overscan: 6,
     scrollMargin,
@@ -93,10 +93,10 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
 
   // Row heights depend on the column width, font size and visible texts: when
   // any of them changes, drop the measured sizes and keep the top row in place.
-  const layout = useRef({ width, arabicFontSize, showArabic, showEnglish, readingMode })
+  const layout = useRef({ width, arabicFontSize, showArabic, showEnglish, readingMode, translationLanguage })
   useEffect(() => {
     const prev = layout.current
-    layout.current = { width, arabicFontSize, showArabic, showEnglish, readingMode }
+    layout.current = { width, arabicFontSize, showArabic, showEnglish, readingMode, translationLanguage }
     // The first width measurement isn't a change (and must keep a restored cache).
     if (prev.width === 0) return
     if (
@@ -104,7 +104,8 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
       prev.arabicFontSize === arabicFontSize &&
       prev.showArabic === showArabic &&
       prev.showEnglish === showEnglish &&
-      prev.readingMode === readingMode
+      prev.readingMode === readingMode &&
+      prev.translationLanguage === translationLanguage
     ) {
       return
     }
@@ -112,7 +113,7 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
       anchorRef.current ?? topRowIndex(virtualizer.getVirtualItems(), virtualizer.scrollOffset, headerHeight)
     virtualizer.measure()
     if (anchor !== undefined && anchor > 0) virtualizer.scrollToIndex(anchor, { align: 'start' })
-  }, [width, arabicFontSize, showArabic, showEnglish, readingMode, headerHeight, virtualizer])
+  }, [width, arabicFontSize, showArabic, showEnglish, readingMode, translationLanguage, headerHeight, virtualizer])
 
   // Restore the previous position (or start at the top) when the feed opens.
   useLayoutEffect(() => {
@@ -182,6 +183,7 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
                     surah={row.surah}
                     showArabic={showArabic}
                     showEnglish={showEnglish}
+                    language={translationLanguage}
                     readingMode={readingMode}
                     isLastRead={bookmarks.lastRead === row.verse.key}
                     isLastRecited={bookmarks.lastRecited === row.verse.key}
@@ -223,6 +225,7 @@ function estimateRowHeight(
   showArabic: boolean,
   showEnglish: boolean,
   readingMode: boolean,
+  language: TranslationLanguage,
 ): number {
   const lineHeight = fontSize * 2.2
   if (row.kind === 'surah') {
@@ -234,7 +237,7 @@ function estimateRowHeight(
   const arabicLines = showArabic
     ? Math.max(1, Math.ceil((row.verse.textArabicPlain.length * fontSize * 0.42) / textWidth))
     : 0
-  const translationLines = showEnglish ? Math.ceil((row.verse.translation.length * 7.6) / textWidth) : 0
+  const translationLines = showEnglish ? Math.ceil((row.verse.translations[language].length * 7.6) / textWidth) : 0
   const text = arabicLines * lineHeight + translationLines * 24.4 + (showArabic && showEnglish ? 4 : 0)
   // Reading mode: padding only. Otherwise also the title line and the action bar.
   return readingMode ? 12 + text + 12 + 1 : 12 + 22 + 4 + text + 4 + 42 + 1

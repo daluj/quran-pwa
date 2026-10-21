@@ -25,7 +25,7 @@ beforeEach(async () => {
   await db.verses.bulkAdd(
     VERSES.map((key) => {
       const [surah, ayah] = key.split(':').map(Number) as [number, number]
-      return { key, surah, ayah, textArabic: 'x', textArabicPlain: 'x', translation: 'x' }
+      return { key, surah, ayah, textArabic: 'x', textArabicPlain: 'x', translations: { en: 'x', es: 'x' } }
     }),
   )
 })
@@ -66,7 +66,7 @@ describe('backup', () => {
     const backup = await createBackup(db, new Date('2026-10-17T10:00:00Z'))
     expect(backup).toMatchObject({ app: BACKUP_APP, format: 1, exportedAt: '2026-10-17T10:00:00.000Z' })
     expect(summarizeBackup(backup)).toEqual({ prayer: 6, collection: 1, verses: 3, bookmarks: 1 })
-    expect(backup.settings).toEqual({ theme: 'dark', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
+    expect(backup.settings).toEqual({ theme: 'dark', translationLanguage: 'en', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
   })
 
   it('restores everything after the data is wiped', async () => {
@@ -81,7 +81,7 @@ describe('backup', () => {
     expect(await db.lists.where('name').equals('Something else').count()).toBe(0)
     expect((await getListItems(mercy.id, db)).map((i) => i.verseKey)).toEqual(['39:53', '1:1'])
     expect(await db.bookmarks.get('lastRead')).toMatchObject({ verseKey: '2:255' })
-    expect(await getSettings(db)).toEqual({ theme: 'dark', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
+    expect(await getSettings(db)).toEqual({ theme: 'dark', translationLanguage: 'en', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
     expect(await db.verses.count()).toBe(VERSES.length)
   })
 
@@ -127,6 +127,15 @@ describe('backup', () => {
     expect(reading.settings.readingMode).toBe(true)
   })
 
+  it('restores the translation language, and reads older backups without it', () => {
+    const base = { app: BACKUP_APP, format: 1, lists: [], listItems: [], bookmarks: [] }
+    expect(validateBackup({ ...base, settings: { translationLanguage: 'es' } }, () => true).settings.translationLanguage).toBe('es')
+    expect(validateBackup({ ...base, settings: { theme: 'dark' } }, () => true).settings.translationLanguage).toBe('en')
+    for (const bad of ['fr', 3, null, 'toString']) {
+      expect(validateBackup({ ...base, settings: { translationLanguage: bad } }, () => true).settings.translationLanguage).toBe('en')
+    }
+  })
+
   it('falls back to defaults for unusable settings', () => {
     const backup = validateBackup(
       {
@@ -139,7 +148,7 @@ describe('backup', () => {
       },
       () => true,
     )
-    expect(backup.settings).toEqual({ theme: 'system', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 28 })
+    expect(backup.settings).toEqual({ theme: 'system', translationLanguage: 'en', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 28 })
   })
 
   it('leaves the data untouched when a restore fails midway', async () => {

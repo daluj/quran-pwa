@@ -7,7 +7,8 @@ import { buildSearchIndex, highlightRanges, parseQuery, searchVerses, type Searc
 const verses = JSON.parse(
   readFileSync(join(import.meta.dirname, '..', 'src', 'data', 'verses.json'), 'utf8'),
 ) as Verse[]
-const index = buildSearchIndex(verses)
+const index = buildSearchIndex(verses, 'en')
+const indexEs = buildSearchIndex(verses, 'es')
 const verse = (key: string) => verses.find((v) => v.key === key)!
 
 function search(input: string): string[] {
@@ -40,10 +41,29 @@ describe('searching the translation', () => {
     expect(search('lórd of the worlds')).toContain('1:2')
   })
 
+  it('searches the Spanish translation, ignoring case and accents', () => {
+    const spanish = (input: string) => searchVerses(indexEs, parseQuery(input)!).map((v) => v.key)
+    const results = spanish('ORACION')
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.every((k) => /oraci[oó]n/i.test(verse(k).translations.es))).toBe(true)
+    expect(spanish('señor de los mundos')).toContain('1:2')
+    expect(spanish('lord of the worlds')).not.toContain('1:2')
+  })
+
+  it('finds Arabic the same in both languages', () => {
+    const query = parseQuery('الحمد لله')!
+    expect(searchVerses(indexEs, query)).toEqual(searchVerses(index, query))
+  })
+
+  it('highlights accented Spanish words', () => {
+    const text = verse('1:2').translations.es
+    expect(marks(text, 'senor')).toEqual(['Señor'])
+  })
+
   it('requires every word, in any order', () => {
     const results = search('worlds lord')
     expect(results).toContain('1:2')
-    expect(results.every((k) => /lord/i.test(verse(k).translation) && /worlds/i.test(verse(k).translation))).toBe(
+    expect(results.every((k) => /lord/i.test(verse(k).translations.en) && /worlds/i.test(verse(k).translations.en))).toBe(
       true,
     )
   })

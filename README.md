@@ -28,8 +28,8 @@ stack, roadmap and a spec for every feature (see
   Arabic (ignoring diacritics, alif forms, ta marbuta / ha, alif maqsura / ya,
   and Uthmani spelling differences) or the translation, with matches
   highlighted. Collections are listed below; twelve come with verses.
-- **Settings:** theme (system / light / dark), translation on/off, English
-  only (hides the Arabic), reading mode (only the verse number and text),
+- **Settings:** theme (system / light / dark), translation language (English
+  or Spanish), translation on/off, translation only (hides the Arabic), reading mode (only the verse number and text),
   Arabic text size, and JSON backup export/import.
 
 ## Tech stack
@@ -106,10 +106,15 @@ CHANGELOG.md         Changes by date
 - **English translation:** `data/raw/en.translation.txt`
   (**source and license still to be filled in** in `data/raw/SOURCES.md` and
   `src/data/sources.ts`)
+- **Spanish translation:** `data/raw/es.translation.txt`, made from the Arabic
+  for this project (machine translation, not yet reviewed by a qualified
+  reader of Arabic); guidelines and decisions in
+  `specs/2026-10-21-spanish-translation/`
 
-`scripts/build-quran-data.ts` validates both files (6,236 verses, 114 surahs,
+`scripts/build-quran-data.ts` validates all three files (6,236 verses, 114 surahs,
 no gaps, duplicates or empty text), removes the Bismillah that Tanzil prefixes
-to verse 1 of surahs 2–114 (except 9), and writes `src/data/`. A content hash
+to verse 1 of surahs 2–114 (except 9), and writes `src/data/` with both translations in every verse (`translations.en`,
+`translations.es`). A content hash
 is stored as the data version; when it changes, the app re-seeds IndexedDB on
 the next launch without touching user data.
 

@@ -1,5 +1,12 @@
 // Shapes of the generated files in src/data/ (written by scripts/build-quran-data.ts).
 
+export const TRANSLATION_LANGUAGES = {
+  en: 'English',
+  es: 'Español',
+} as const
+
+export type TranslationLanguage = keyof typeof TRANSLATION_LANGUAGES
+
 export interface Verse {
   surah: number
   ayah: number
@@ -8,7 +15,7 @@ export interface Verse {
   textArabic: string
   /** Arabic without diacritics, normalized for search */
   textArabicPlain: string
-  translation: string
+  translations: Record<TranslationLanguage, string>
 }
 
 export interface Surah {

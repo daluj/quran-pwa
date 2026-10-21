@@ -58,14 +58,14 @@ describe('seedQuranData', () => {
     await seedDefaultLists(db)
     await db.bookmarks.put({ type: 'lastRead', verseKey: '2:255', updatedAt: 1 })
 
-    const changed = verses.map((v) => (v.key === '1:1' ? { ...v, translation: 'updated' } : v))
+    const changed = verses.map((v) => (v.key === '1:1' ? { ...v, translations: { ...v.translations, en: 'updated' } } : v))
     const result = await seedQuranData(
       db,
       source({ meta: { ...meta, version: 'newversion00' }, loadVerses: async () => changed }),
     )
 
     expect(result).toBe('seeded')
-    expect((await db.verses.get('1:1'))?.translation).toBe('updated')
+    expect((await db.verses.get('1:1'))?.translations.en).toBe('updated')
     expect(await db.verses.count()).toBe(6236)
     expect(await db.lists.count()).toBe(DEFAULT_LISTS.length)
     expect(await db.bookmarks.get('lastRead')).toBeDefined()

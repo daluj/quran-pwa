@@ -138,10 +138,11 @@ Spec: [2026-10-21-spanish-translation](2026-10-21-spanish-translation/)
 ## Phase 12: Spanish Translation in the App
 
 **Goal:** Choose between the English and Spanish translations.
+Spec: [2026-10-21-spanish-translation-app](2026-10-21-spanish-translation-app/)
 
-- [ ] Build script reads `es.translation.txt` (data model with more than one translation)
-- [ ] Language setting, included in backups
-- [ ] Search and "only show translation" work with the chosen language
+- [x] Build script reads `es.translation.txt` (data model with more than one translation)
+- [x] Language setting, included in backups
+- [x] Search and "only show translation" work with the chosen language
 
 ---
 

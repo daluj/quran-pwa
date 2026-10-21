@@ -363,7 +363,7 @@ describe('Explore search', () => {
 describe('Settings', () => {
   it('turns the translation off and changes the Arabic size', async () => {
     renderApp('/settings')
-    const toggle = await screen.findByRole('switch', { name: 'Show English translation' })
+    const toggle = await screen.findByRole('switch', { name: 'Show translation' })
     expect(toggle.getAttribute('aria-checked')).toBe('true')
     fireEvent.click(toggle)
     await vi.waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('false'))
@@ -383,8 +383,8 @@ describe('Settings', () => {
 
   it('shows only the English translation everywhere', async () => {
     const router = renderApp('/settings')
-    fireEvent.click(await screen.findByRole('switch', { name: 'Only show English translation' }))
-    const translation = screen.getByRole('switch', { name: 'Show English translation' })
+    fireEvent.click(await screen.findByRole('switch', { name: 'Only show translation' }))
+    const translation = screen.getByRole('switch', { name: 'Show translation' })
     await vi.waitFor(() => expect(translation).toHaveProperty('disabled', true))
     expect(translation.getAttribute('aria-checked')).toBe('true')
 
@@ -399,6 +399,33 @@ describe('Settings', () => {
     await router.navigate('/explore?q=' + encodeURIComponent('الحمد لله'))
     await screen.findByText(/in the Arabic/)
     expect(document.querySelectorAll('ol[aria-label="Search results"] p[lang="ar"]').length).toBeGreaterThan(0)
+
+    await db.settings.clear()
+  })
+
+  it('shows the Spanish translation in the feed, search and settings', async () => {
+    const router = renderApp('/settings')
+    const select = await screen.findByRole('combobox', { name: 'Translation language' })
+    expect(screen.queryByText(/not yet reviewed/)).toBeNull()
+    fireEvent.change(select, { target: { value: 'es' } })
+    await vi.waitFor(async () => expect((await db.settings.get('translationLanguage'))?.value).toBe('es'))
+    expect(await screen.findByText(/not yet reviewed/)).toBeTruthy()
+
+    await router.navigate('/quran/1/1')
+    const card = await screen.findByRole('article', { name: 'Surah 1, verse 2' })
+    expect(card.querySelector('p[lang="es"]')?.textContent).toMatch(/Señor de los mundos/)
+    expect(within(card).queryByText('Praise be to God, Lord of the Worlds.')).toBeNull()
+
+    await router.navigate('/explore?q=' + encodeURIComponent('señor de los mundos'))
+    await screen.findByText(/in the translation/)
+    expect(document.querySelectorAll('ol[aria-label="Search results"] p[lang="es"]').length).toBeGreaterThan(0)
+
+    // Translation-only mode follows the language.
+    await db.settings.put({ key: 'englishOnly', value: true })
+    await router.navigate('/quran/1/1')
+    const only = await screen.findByRole('article', { name: 'Surah 1, verse 2' })
+    expect(only.querySelector('p[lang="es"]')).toBeTruthy()
+    expect(document.querySelectorAll('main p[lang="ar"]')).toHaveLength(0)
 
     await db.settings.clear()
   })

@@ -30,7 +30,6 @@ Files in this folder are imported as-is and never edited by hand.
 - **Format:** same as the English file — `surah|ayah|text`, one verse per
   line, 6236 lines; 1:1 is the Bismillah, and verse 1 of the other surahs
   doesn't repeat it
-- **Not used by the app yet:** the build script doesn't read this file
 
 ## English translation — `en.translation.txt`
 

@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Surah, Verse } from '../data/types'
+import type { Surah, TranslationLanguage, Verse } from '../data/types'
 
 export type ListType = 'prayer' | 'collection'
 
@@ -33,7 +33,9 @@ export type ThemePreference = 'system' | 'light' | 'dark'
 export interface Settings {
   theme: ThemePreference
   showTranslation: boolean
-  /** Hide the Arabic and show only the translation (overrides showTranslation). */
+  /** Which translation verses show. */
+  translationLanguage: TranslationLanguage
+  /** Hide the Arabic and show only the translation (overrides showTranslation). Stored as before the Spanish translation, when it meant "English only". */
   englishOnly: boolean
   /** Quran feed shows only the verse number and text (no title line or actions). */
   readingMode: boolean
@@ -59,6 +61,7 @@ export const ARABIC_FONT_SIZE = { min: 20, max: 48, step: 2 }
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   showTranslation: true,
+  translationLanguage: 'en',
   englishOnly: false,
   readingMode: false,
   arabicFontSize: 28,

@@ -9,7 +9,7 @@ a connection after the first visit.
 
 Give Muslims a calm, fast, trustworthy place to read and return to the Quran:
 
-- **Read** all 6,236 verses in the Uthmani script with an English translation,
+- **Read** all 6,236 verses in the Uthmani script with an English or Spanish translation,
   and pick up where you left off (last read, last recited).
 - **Keep** verses in personal collections and prayer topics, ready for daily
   use.

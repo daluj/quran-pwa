@@ -3,7 +3,9 @@
 
 import { createHash } from 'node:crypto'
 import { normalizeArabic } from '../src/lib/arabic.ts'
-import type { QuranMeta, Surah, Verse } from '../src/data/types.ts'
+import { TRANSLATION_LANGUAGES, type QuranMeta, type Surah, type TranslationLanguage, type Verse } from '../src/data/types.ts'
+
+const TRANSLATION_LANGUAGE_CODES = Object.keys(TRANSLATION_LANGUAGES) as TranslationLanguage[]
 
 export const EXPECTED_VERSES = 6236
 export const EXPECTED_SURAHS = 114
@@ -104,15 +106,23 @@ export interface QuranDataset {
 }
 
 /** Merge the parsed Arabic and translation into the bundled dataset. */
-export function buildDataset(arabicContent: string, translationContent: string): QuranDataset {
+export function buildDataset(
+  arabicContent: string,
+  translationContents: Record<TranslationLanguage, string>,
+): QuranDataset {
   const arabic = parseTanzil(arabicContent, 'quran-uthmani.txt')
-  const translation = parseTanzil(translationContent, 'en.translation.txt')
+  const parsed = Object.fromEntries(
+    TRANSLATION_LANGUAGE_CODES.map((code) => [code, parseTanzil(translationContents[code], `${code}.translation.txt`)]),
+  ) as Record<TranslationLanguage, Map<string, TanzilLine>>
 
-  const mismatched = [
-    ...[...arabic.keys()].filter((k) => !translation.has(k)).map((k) => `${k} missing in translation`),
-    ...[...translation.keys()].filter((k) => !arabic.has(k)).map((k) => `${k} missing in Arabic`),
-  ]
-  if (mismatched.length > 0) throw new DataValidationError('arabic vs translation', mismatched)
+  for (const code of TRANSLATION_LANGUAGE_CODES) {
+    const translation = parsed[code]
+    const mismatched = [
+      ...[...arabic.keys()].filter((k) => !translation.has(k)).map((k) => `${k} missing in translation`),
+      ...[...translation.keys()].filter((k) => !arabic.has(k)).map((k) => `${k} missing in Arabic`),
+    ]
+    if (mismatched.length > 0) throw new DataValidationError(`arabic vs ${code}.translation.txt`, mismatched)
+  }
 
   const bismillah = arabic.get('1:1')!.text
   const verses: Verse[] = [...arabic.values()]
@@ -126,7 +136,9 @@ export function buildDataset(arabicContent: string, translationContent: string):
         key,
         textArabic,
         textArabicPlain: normalizeArabic(textArabic),
-        translation: translation.get(key)!.text,
+        translations: Object.fromEntries(
+          TRANSLATION_LANGUAGE_CODES.map((code) => [code, parsed[code].get(key)!.text]),
+        ) as Record<TranslationLanguage, string>,
       }
     })
 

@@ -1,4 +1,4 @@
-import type { Verse } from '../data/types'
+import type { TranslationLanguage, Verse } from '../data/types'
 import {
   ALIF,
   containsArabic,
@@ -60,11 +60,11 @@ export interface SearchIndexEntry {
   latin: string
 }
 
-export function buildSearchIndex(verses: Verse[]): SearchIndexEntry[] {
+export function buildSearchIndex(verses: Verse[], language: TranslationLanguage): SearchIndexEntry[] {
   return verses.map((verse) => ({
     verse,
     arabic: normalizeArabicSearchWithMap(verse.textArabic).text,
-    latin: normalizeLatin(verse.translation),
+    latin: normalizeLatin(verse.translations[language]),
   }))
 }
 

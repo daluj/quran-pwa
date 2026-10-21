@@ -74,7 +74,8 @@ export function SearchResults({ text, reference, query, results }: SearchResults
 }
 
 const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; query: SearchQuery }) {
-  const { arabicFontSize } = useSettings()
+  const { arabicFontSize, translationLanguage } = useSettings()
+  const translation = verse.translations[translationLanguage]
   const visible = useTextVisibility()
   const arabic = query.script === 'arabic'
 
@@ -103,11 +104,11 @@ const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; qu
         </p>
       )}
       {(visible.english || !arabic) && (
-        <p className="mt-1 text-[15px] leading-relaxed">
+        <p lang={translationLanguage} className="mt-1 text-[15px] leading-relaxed">
           {arabic ? (
-            verse.translation
+            translation
           ) : (
-            <Highlighted text={verse.translation} ranges={highlightRanges(verse.translation, query)} />
+            <Highlighted text={translation} ranges={highlightRanges(translation, query)} />
           )}
         </p>
       )}
