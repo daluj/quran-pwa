@@ -121,7 +121,31 @@ Spec: [2026-10-20-spec-driven-workflow](2026-10-20-spec-driven-workflow/)
 
 ---
 
-## Phase 11: Audio Recitation — Play a Verse
+## Phase 11: Spanish Translation (data)
+
+**Goal:** A complete Spanish (Spain) translation made from the Arabic, with
+its guidelines and decisions recorded.
+Spec: [2026-10-21-spanish-translation](2026-10-21-spanish-translation/)
+
+- [x] Owner's guidelines and terminology decisions recorded
+- [x] `data/raw/es.translation.txt`: all 114 surahs, 6236 verses
+- [x] Contested verses listed for review
+- [ ] Reviewed by a qualified reader of Arabic
+- [ ] Reviewed and committed by the owner
+
+---
+
+## Phase 12: Spanish Translation in the App
+
+**Goal:** Choose between the English and Spanish translations.
+
+- [ ] Build script reads `es.translation.txt` (data model with more than one translation)
+- [ ] Language setting, included in backups
+- [ ] Search and "only show translation" work with the chosen language
+
+---
+
+## Phase 13: Audio Recitation — Play a Verse
 
 **Goal:** Listen to a single verse recited.
 
@@ -132,7 +156,7 @@ Spec: [2026-10-20-spec-driven-workflow](2026-10-20-spec-driven-workflow/)
 
 ---
 
-## Phase 12: Audio Recitation — Continuous Playback
+## Phase 14: Audio Recitation — Continuous Playback
 
 **Goal:** Recite a surah verse after verse, following along in the feed.
 
@@ -142,7 +166,7 @@ Spec: [2026-10-20-spec-driven-workflow](2026-10-20-spec-driven-workflow/)
 
 ---
 
-## Phase 13: Audio Recitation — Offline Audio
+## Phase 15: Audio Recitation — Offline Audio
 
 **Goal:** Choose surahs to keep offline.
 

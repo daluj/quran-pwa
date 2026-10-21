@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-21
+
+- Add a Spanish (Spain) translation made from the Arabic (`data/raw/es.translation.txt`), with its guidelines, decisions and contested verses in `specs/2026-10-21-spanish-translation/`; not shown in the app yet
+
 ## 2026-10-20
 
 - Adopt spec-driven development: constitution (mission, tech stack, roadmap) and a spec folder per phase in `specs/`
