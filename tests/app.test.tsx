@@ -150,6 +150,30 @@ describe('Quran feed', () => {
     expect(arabic[0]!.textContent).toBe((await db.verses.get('1:1'))!.textArabic)
   })
 
+  it('makes every Arabic word a button that plays its audio, and a second tap stops it', async () => {
+    const wordFetch = vi.fn<(url: RequestInfo | URL) => Promise<Response>>(async () => new Response(new Blob(['mp3']), { status: 200 }))
+    const realFetch = fetch
+    vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) =>
+      String(input).includes('audio.qurancdn.com') ? wordFetch(input) : realFetch(input, init),
+    )
+    URL.createObjectURL = vi.fn(() => 'blob:word')
+    URL.revokeObjectURL = vi.fn()
+    HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve())
+    HTMLMediaElement.prototype.pause = vi.fn()
+
+    renderApp('/quran/1/1')
+    const card = await screen.findByRole('article', { name: 'Surah 1, verse 1' })
+    const words = within(card.querySelector<HTMLElement>('p[lang="ar"]')!).getAllByRole('button')
+    const verse = (await db.verses.get('1:1'))!
+    expect(words.map((w) => w.textContent)).toEqual(verse.textArabic.split(' '))
+
+    fireEvent.click(words[1]!)
+    expect(wordFetch).toHaveBeenCalledWith('https://audio.qurancdn.com/wbw/001_001_002.mp3')
+    expect(words[1]!.getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(words[1]!)
+    expect(words[1]!.getAttribute('aria-pressed')).toBe('false')
+  })
+
   it('scrolls to and highlights a deep-linked verse', async () => {
     renderApp('/quran/2/255')
     const card = await screen.findByRole('article', { name: 'Surah 2, verse 255' })
@@ -437,7 +461,9 @@ describe('Settings', () => {
 
     await router.navigate('/quran/1/1')
     const card = await screen.findByRole('article', { name: 'Surah 1, verse 2' })
-    expect(within(card).queryAllByRole('button')).toHaveLength(0)
+    // No action buttons: the only buttons left are the tappable Arabic words.
+    const arabic = card.querySelector('p[lang="ar"]')!
+    expect(within(card).queryAllByRole('button').filter((b) => !arabic.contains(b))).toHaveLength(0)
     expect(within(card).queryByText(/1:2/)).toBeNull()
     expect(within(card).getByText('2')).toBeTruthy()
     expect(card.querySelector('p[lang="ar"]')).toBeTruthy()

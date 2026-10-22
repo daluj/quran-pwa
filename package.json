@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc -b",
+    "verify:word-audio": "tsx scripts/verify-word-audio.ts",
     "icons": "pwa-assets-generator"
   },
   "dependencies": {

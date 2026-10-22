@@ -110,6 +110,24 @@
   font-size: var(--arabic-font-size, 28px);
 }
 
+/* A tappable Arabic word: looks like plain text until it plays or has focus. */
+@utility word {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0.25em;
+  &:hover {
+    background-color: var(--hover);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+}
+
+@utility word-playing {
+  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }

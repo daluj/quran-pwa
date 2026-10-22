@@ -58,3 +58,21 @@ Files in this folder are imported as-is and never edited by hand.
 - **Source:** https://example.com (placeholder)
 - **License:** Unknown (placeholder)
 - **Format:** "Text (with aya numbers)" — `surah|ayah|text`, one verse per line
+
+## Word audio — `https://audio.qurancdn.com/wbw/`
+
+Not a file in this folder: the app plays it from the network.
+
+- **Name:** Quran.com word-by-word audio
+- **Source:** Quran.com's CDN, one MP3 per word:
+  `https://audio.qurancdn.com/wbw/SSS_AAA_WWW.mp3` (surah, ayah and word
+  position, zero-padded to three digits; `002_101_001.mp3` is the first word
+  of 2:101). Checked on 2026-10-22.
+- **License:** **to confirm.** The CDN states none. Check Quran.com's terms
+  (https://quran.com) and, if needed, ask them before a public release.
+- **Numbering:** word *n* is the *n*th space-separated word of the Tanzil
+  text. Six verses disagree with the audio's count (2:181, 8:6, 12:8, 13:37,
+  37:130, 79:1); they are listed in `src/data/word-audio-exceptions.json` and
+  have no word audio. Regenerate with `npm run verify:word-audio`.
+- **Offline:** words the user plays are cached in the browser (`word-audio`
+  cache, up to 1500 files for 30 days); nothing is bundled.

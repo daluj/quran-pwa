@@ -10,6 +10,7 @@ import { SaveSheet, type SaveTarget } from '../lists/SaveSheet'
 import { scrollRowFor, type Feed, type FeedRow } from './feed'
 import { SurahHeader } from './SurahHeader'
 import { VerseCard } from './VerseCard'
+import { WordAudioNotice } from './WordAudioNotice'
 
 const HIGHLIGHT_MS = 2600
 
@@ -199,6 +200,7 @@ export function QuranFeed({ feed, target, navigationKey, headerHeight, onTopSura
         </div>
       </div>
       <SaveSheet target={saveTarget} onClose={() => setSaveTarget(null)} />
+      <WordAudioNotice />
     </>
   )
 }

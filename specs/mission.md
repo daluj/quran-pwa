@@ -56,4 +56,5 @@ with poor or no connectivity (travel, mosques, commutes).
 ## Out of Scope
 
 Tafsir, user accounts, cloud sync, prayer times, sharing, and surah names.
-Audio recitation is planned (see [roadmap.md](roadmap.md)).
+Verse recitation audio is not planned; word-by-word audio exists (see
+[roadmap.md](roadmap.md)).

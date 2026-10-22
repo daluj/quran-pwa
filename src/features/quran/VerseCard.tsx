@@ -1,9 +1,11 @@
 import { Bookmark, FolderPlus, HandHeart, Mic, type LucideIcon } from 'lucide-react'
-import { memo } from 'react'
+import { Fragment, memo } from 'react'
 import type { Surah, TranslationLanguage, Verse } from '../../data/types'
 import { toggleBookmark } from '../../db/bookmarks'
 import type { ListType } from '../../db/db'
 import { forDisplay } from '../../lib/arabic'
+import { playWord, usePlayingWord } from '../../lib/wordAudio'
+import { hasWordAudio, splitWords } from '../../lib/words'
 
 interface VerseCardProps {
   verse: Verse
@@ -37,6 +39,7 @@ export const VerseCard = memo(function VerseCard({
   highlighted,
   onSave,
 }: VerseCardProps) {
+  const playingWord = usePlayingWord(verse.key)
   return (
     <article
       aria-label={`Surah ${surah.number}, verse ${verse.ayah}`}
@@ -57,7 +60,11 @@ export const VerseCard = memo(function VerseCard({
         )}
         {showArabic && (
           <p lang="ar" className="quran-text">
-            {forDisplay(verse.textArabic)}
+            {hasWordAudio(verse.key) ? (
+              <ArabicWords verseKey={verse.key} text={verse.textArabic} playing={playingWord} />
+            ) : (
+              forDisplay(verse.textArabic)
+            )}
           </p>
         )}
         {showEnglish && (
@@ -107,6 +114,23 @@ export const VerseCard = memo(function VerseCard({
     </article>
   )
 })
+
+/** The verse's words as buttons: tap one to hear it, tap it again to stop. */
+function ArabicWords({ verseKey, text, playing }: { verseKey: string; text: string; playing: number | undefined }) {
+  return splitWords(text).map((word, i) => (
+    <Fragment key={i}>
+      {i > 0 && ' '}
+      <button
+        type="button"
+        className={`word ${playing === i + 1 ? 'word-playing' : ''}`}
+        aria-pressed={playing === i + 1}
+        onClick={() => playWord(verseKey, i + 1)}
+      >
+        {forDisplay(word)}
+      </button>
+    </Fragment>
+  ))
+}
 
 const TONES = {
   read: { active: 'text-read', hover: 'hover:text-read hover:bg-read/10' },

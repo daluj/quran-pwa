@@ -30,6 +30,10 @@
 - **vite-plugin-pwa** (Workbox, `generateSW`) — precaches the app shell, fonts,
   icons and the Quran JSON (~4 MB); `registerType: 'prompt'` so updates wait
   for the user ("Update" prompt)
+- **Word audio** (`audio.qurancdn.com/wbw/`) is not precached: a Workbox
+  `CacheFirst` runtime cache (`word-audio`, 1500 files, 30 days) keeps the
+  words the user has played. The player downloads each file whole with
+  `fetch` and plays it from a blob URL, so the cached response is a plain 200.
 - Web app manifest and icons generated from `public/favicon.svg`
   (`npm run icons`)
 
@@ -51,6 +55,9 @@
   generated, committed JSON in `src/data/` (`verses.json`, `surahs.json`,
   `meta.json`); each verse carries `translations: { en, es }`, and the
   `translationLanguage` setting picks which one the app shows
+- `scripts/verify-word-audio.ts` (`npm run verify:word-audio`, by hand) lists
+  the verses whose word count differs from the audio CDN's in
+  `src/data/word-audio-exceptions.json`; they get no word audio
 - Runs before every production build; fails loudly on invalid data
 - The data version is a content hash; a new hash re-seeds verses and surahs
   on next launch without touching user tables
@@ -98,8 +105,8 @@
 - **`package.json` engines** says `>=20`, but Vite 8 needs 20.19+ or 22.12+.
 - **Bundle size:** the main JS chunk is ~520 KB (164 KB gzipped) and Vite
   warns above 500 KB; routes could be code-split if load time matters.
-- **Audio recitation** (next on the roadmap) will need an audio source with a
-  clear license, and a storage strategy: audio is far larger than the text, so
-  it can't all be precached like the Quran JSON.
+- **Word audio license:** the Quran.com CDN states no license for the word
+  audio; confirm the terms before a public release (`data/raw/SOURCES.md`).
+  The audio is also a third-party request (the CDN sees the user's IP).
 - **Untested:** installing on real iOS and Android devices; Lighthouse (no
   local Chrome, and Lighthouse 12+ has no PWA category).

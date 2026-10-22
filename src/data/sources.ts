@@ -5,6 +5,13 @@ export const SOURCES = {
     url: 'https://tanzil.net',
     license: 'Creative Commons Attribution 3.0',
   },
+  wordAudio: {
+    name: 'Quran.com word-by-word audio',
+    url: 'https://quran.com',
+    // TODO: no license is stated for the audio files; confirm before a public release.
+    license: 'To be confirmed',
+    note: 'Played from audio.qurancdn.com; words you have played are kept for offline use.',
+  },
   translations: {
     // TODO: placeholder until the translation's details are confirmed.
     en: {

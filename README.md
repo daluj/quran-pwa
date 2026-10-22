@@ -19,7 +19,9 @@ stack, roadmap and a spec for every feature (see
   be saved to collections or prayer topics and marked as last read or last
   recited, with "Continue reading/reciting" shortcuts. Deep links
   (`/quran/2/255`) scroll to the verse and highlight it. The scroll position
-  is kept when switching tabs.
+  is kept when switching tabs. Tap an Arabic word to hear it (word-by-word
+  audio from Quran.com's CDN); tap it again to stop. Words you have played
+  keep working offline.
 - **Prayers:** prayer topics holding verses that can be reordered, removed or
   opened in the Quran. Seven topics come with verses (Forgiveness, Guidance,
   Protection, Gratitude, Patience, Provisions, Knowledge); all can be renamed
@@ -52,6 +54,7 @@ npm run dev
 | `npm run build`     | Regenerate Quran data, type-check and build for production      |
 | `npm run preview`   | Serve the production build (use this to test offline / install) |
 | `npm run data`      | Rebuild `src/data/*.json` from `data/raw/`                      |
+| `npm run verify:word-audio` | Check word counts against the audio CDN (network, ~6 min) |
 | `npm test`          | Run unit, component and accessibility (axe) tests               |
 | `npm run lint`      | Lint                                                            |
 | `npm run typecheck` | Type-check                                                      |
@@ -83,14 +86,15 @@ this automatically when the output has no `404.html`.
 ```
 specs/               Mission, tech stack, roadmap, and a spec folder per feature
 data/raw/            Raw Tanzil files (never edited) and SOURCES.md
-scripts/             build-quran-data.ts: parses, validates, writes src/data/
+scripts/             build-quran-data.ts: parses, validates, writes src/data/;
+                     verify-word-audio.ts: checks word audio against the CDN
 src/
   app/               Router, root layout, data loading
   components/        Layout (sidebar, tab bar, header), dialog, shared bits
   data/              Generated Quran JSON, default lists, types, sources
   db/                Dexie schema, seeding, lists, bookmarks, settings, backups
   features/          quran/, prayers/, explore/, lists/, settings/
-  lib/               Arabic normalization, reference parsing, search
+  lib/               Arabic normalization, reference parsing, search, word audio
   styles/            Tailwind and theme tokens
   theme/             Light/dark theme provider
 tests/               Vitest tests
@@ -121,6 +125,11 @@ the next launch without touching user data.
 The default prayer topics and collections, with their verses, are defined in
 `src/data/default-lists.json` and created on first launch. Tests check that
 every verse in it exists.
+
+- **Word audio:** one MP3 per word from Quran.com's CDN
+  (`audio.qurancdn.com/wbw/`), played on demand and cached in the browser;
+  license still to confirm in `data/raw/SOURCES.md`. Six verses whose word
+  count differs from the audio are in `src/data/word-audio-exceptions.json`.
 
 User data (lists, bookmarks, settings) lives only in the browser's IndexedDB.
 The app asks the browser for persistent storage, and Settings offers backup

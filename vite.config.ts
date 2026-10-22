@@ -44,6 +44,20 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
+        // Word audio is too large to precache (~77k files): keep the words
+        // the user has played. The player downloads each file whole, so the
+        // cached response is a plain 200.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.origin === 'https://audio.qurancdn.com' && url.pathname.startsWith('/wbw/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'word-audio',
+              expiration: { maxEntries: 1500, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: false,

@@ -57,6 +57,7 @@ npx vitest run tests/search.test.ts   # one file
 npm run lint
 npm run typecheck
 npm run data         # rebuild src/data/*.json from data/raw/
+npm run verify:word-audio  # check word counts against the audio CDN (network, ~6 min)
 ```
 
 ## Architecture
@@ -71,7 +72,8 @@ npm run data         # rebuild src/data/*.json from data/raw/
 - `src/features/`: `quran/` (virtualized feed), `lists/` (shared list pages and
   save sheet), `prayers/`, `explore/` (search), `settings/`.
 - `src/lib/`: Arabic normalization (`arabic.ts`), reference parsing
-  (`reference.ts`), search and highlighting (`search.ts`).
+  (`reference.ts`), search and highlighting (`search.ts`), word splitting and
+  audio URLs (`words.ts`), the word audio player (`wordAudio.ts`).
 - Providers (in `main.tsx`): `ThemeProvider` → `SettingsProvider` (settings
   load before anything renders) → `DataProvider` (seeding status) → router.
 

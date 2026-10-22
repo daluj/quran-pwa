@@ -349,7 +349,7 @@ function usePersistedStorage(): boolean | undefined {
 
 function AboutSection() {
   const { translationLanguage } = useSettings()
-  const { arabic } = SOURCES
+  const { arabic, wordAudio } = SOURCES
   const translation = SOURCES.translations[translationLanguage]
   return (
     <Section title="About">
@@ -368,6 +368,14 @@ function AboutSection() {
             {translation.translator} · {translation.license}
           </span>
           {translation.note && <span className="block text-sm text-muted">{translation.note}</span>}
+        </dd>
+        <dt className="text-muted">Word audio</dt>
+        <dd>
+          <a href={wordAudio.url} target="_blank" rel="noreferrer" className="text-accent underline">
+            {wordAudio.name}
+          </a>
+          <span className="block text-sm text-muted">{wordAudio.license}</span>
+          <span className="block text-sm text-muted">{wordAudio.note}</span>
         </dd>
         <dt className="text-muted">Version</dt>
         <dd>

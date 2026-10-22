@@ -1,0 +1,113 @@
+# Word-by-Word Audio — Requirements
+
+## Scope
+
+Every Arabic word in the Quran feed becomes tappable. Tapping a word plays that
+word's pronunciation and highlights it while it plays; tapping another word
+stops the current one, and tapping the playing word again stops it. Audio is fetched from the Quran.com CDN, one MP3 per
+word, and what was played is cached so it plays again offline. Words that were
+never played and aren't cached say so when tapped offline.
+
+The URL is `https://audio.qurancdn.com/wbw/SSS_AAA_WWW.mp3`, with surah, ayah
+and word position (1-based) zero-padded to three digits. For example
+`002_101_001.mp3` is the first word of 2:101.
+
+### Included
+
+- **Word splitting:** a verse's `textArabic` is split on spaces into words;
+  position *n* maps to the CDN file *n*. (Tanzil text has 77,433 such words and
+  none are stop signs or verse-end marks on their own.)
+- **Verification script** (`npm run verify:word-audio`, run by hand, not in CI):
+  checks every verse's word count against the CDN (HEAD requests for the last
+  word and the word after it) and writes the verses that disagree to
+  `src/data/word-audio-exceptions.json`. Those verses get no word audio.
+- **Tap to play:** one audio at a time; the playing word is highlighted.
+- **Cache:** Workbox runtime caching for `audio.qurancdn.com/wbw/` (CacheFirst,
+  size-limited).
+- **Messages:** a short, announced message when a word can't be played (offline
+  and not cached, or the file failed to load).
+- **Where:** the Quran feed only (verse cards), whenever the Arabic is shown.
+- **Sources:** `data/raw/SOURCES.md` records the CDN, who provides the audio
+  and its terms.
+
+### Not included
+
+- A setting to turn word audio off (words are always tappable when the Arabic
+  is shown).
+- Whole-surah downloads and storage management (Phase 14).
+- Verse recitation audio (dropped from the roadmap).
+- Tappable words in list pages and search results (they show Arabic as plain
+  text, with search highlighting; can follow later).
+- Showing a transliteration or word meaning.
+- Playback speed, repeat or autoplay of the whole verse.
+
+## Decisions
+
+- **Tapping the playing word stops it** (a toggle, matching `aria-pressed`).
+  Tapping it again after it stops plays it from the start. Playback also stops
+  when the page is hidden or the user leaves the Quran section.
+- **Tap plays, no setting.** Simplest behaviour and no change to `Settings` or
+  backups. The cost is that selecting Arabic by dragging still works, but a
+  plain tap now plays audio instead of doing nothing.
+- **Words are `<button type="button">` elements** inside the existing
+  `<p lang="ar" class="quran-text">`, separated by ordinary spaces so copying a
+  verse still gives normal text. Keyboard users can reach every word; a verse
+  can have over 100 words, so this adds tab stops — accepted for a first
+  version (revisit with roving focus if it proves tedious).
+- **Button styling is invisible by default** (inherit font, no padding or
+  border), with a highlight for the playing word and a visible focus ring, so
+  the Arabic looks as before and line breaks are unaffected. The accessible
+  name of each word is the word itself, so axe's `label-content-name-mismatch`
+  is satisfied; `aria-pressed` marks the playing word.
+- **One shared `HTMLAudioElement`** managed by a small player module
+  (`src/lib/wordAudio.ts`) so only one word plays at a time and no element per
+  word is created. `VerseCard` stays memoized: the playing word is exposed
+  through a tiny external store (`useSyncExternalStore`), and only the card
+  containing it re-renders.
+- **Display text vs. audio position.** Audio positions come from splitting
+  `textArabic`; the text shown goes through `forDisplay` per word (it only
+  swaps two code points, so splitting before or after gives the same words).
+- **Runtime caching, not precaching.** About 77k files averaging ~70 KB would
+  be several GB. Workbox `CacheFirst` for `audio.qurancdn.com/wbw/` with a
+  `cacheName` of `word-audio`, `maxEntries: 1500`, 30-day expiry, caching
+  only 200 responses. The CDN sends `access-control-allow-origin: *`, so the
+  responses are not opaque.
+- **The player downloads each word with `fetch()` and plays it from a blob
+  URL** instead of giving the CDN URL to `<audio>`. An `<audio>` element asks
+  for byte ranges, and the service worker would cache only a 206 partial
+  response (or none), so words would never be saved. A whole-file `fetch`
+  goes through the service worker as a plain 200, is cached, and works with
+  the same code in every browser. Files are small (tens of KB).
+- **Offline detection by failure.** `navigator.onLine` is unreliable, so the
+  message appears when loading the file fails; the text says the word hasn't
+  been played before so it isn't saved, and suggests Phase 14 downloads once
+  they exist.
+- **Exceptions are data, not code.** Mismatched verses are listed in
+  `src/data/word-audio-exceptions.json` (verse keys), generated by the
+  verification script and committed. The app treats a listed verse as having
+  no word audio, so it never plays the wrong word. If the list is empty, the
+  feature is complete.
+- **Row height:** words are inline buttons with no padding, so card heights
+  shouldn't change; `estimateRowHeight` is only touched if the browser check
+  shows a difference.
+- **No new dependencies.** Workbox is already part of `vite-plugin-pwa`
+  (`workbox-expiration` ships with it).
+- **Privacy:** playing a word makes a request to the CDN, which sees the
+  user's IP like any website would. The app sends nothing else. Settings →
+  Sources (or the about text) says word audio comes from Quran.com's CDN.
+
+## Context
+
+- [mission.md](../mission.md): offline-first, private, every source credited;
+  the mission's Out of Scope mentions audio recitation as planned.
+- [tech-stack.md](../tech-stack.md): Offline & PWA (Workbox `generateSW`);
+  the Gaps list gains the audio-source license item.
+- Code: `src/features/quran/VerseCard.tsx`, `QuranFeed.tsx`
+  (`estimateRowHeight`), `vite.config.ts` (`workbox.runtimeCaching`),
+  `src/lib/arabic.ts` (`forDisplay`), `src/data/sources.ts`,
+  `src/styles/index.css`, `data/raw/SOURCES.md`.
+- Pattern to follow: [2026-10-18-reading-mode](../2026-10-18-reading-mode/)
+  for a change to the verse card that must keep list heights right.
+- **Open risk:** the audio's license is not stated by the CDN. Per the
+  mission, nothing ships publicly without a verified source and terms; record
+  what Quran.com publishes (and who to ask) in `SOURCES.md` before release.

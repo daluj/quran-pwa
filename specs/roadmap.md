@@ -154,17 +154,18 @@ Words are served by the Quran.com CDN as one MP3 per word:
 `https://audio.qurancdn.com/wbw/SSS_AAA_WWW.mp3`, with surah, ayah and word
 position zero-padded to three digits. For example `002_101_001.mp3` is the
 first word of 2:101.
+Spec: [2026-10-22-word-audio](2026-10-22-word-audio/)
 
-- [ ] Confirm the audio source's license and terms, and record it in `data/raw/SOURCES.md`
-- [ ] Split each verse's Arabic text into tappable words, with positions that match the CDN's numbering (check against the Tanzil text: verse-end marks and stop signs must not count as words)
-- [ ] Tap a word to play its audio; tapping another word stops the current one
-- [ ] Show which word is playing (highlight) and keep selection, copy and the verse-card actions working
-- [ ] Respect reading mode and the language setting (only when the Arabic is shown)
-- [ ] Decide how audio is cached: fetch on demand and cache what was played (Workbox runtime caching with a size limit), since precaching ~77k words is not an option
-- [ ] Explain clearly when a word's audio isn't available offline or fails to load
-- [ ] Update `estimateRowHeight` / re-measure check in `QuranFeed.tsx` if word markup changes the card height
-- [ ] Accessibility: words are keyboard-focusable with an accessible name, and the axe tests still pass
-- [ ] Tests for word splitting and numbering, and for playback behaviour
+- [ ] Confirm the audio source's license and terms (recorded in `data/raw/SOURCES.md` as "to confirm")
+- [x] Split each verse's Arabic text into tappable words, with positions that match the CDN's numbering (six verses differ from the CDN and have no word audio)
+- [x] Tap a word to play its audio; tapping another word stops the current one
+- [x] Show which word is playing (highlight) and keep selection, copy and the verse-card actions working
+- [x] Respect reading mode and the language setting (only when the Arabic is shown)
+- [x] Decide how audio is cached: fetch on demand and cache what was played (Workbox runtime caching with a size limit), since precaching ~77k words is not an option
+- [x] Explain clearly when a word's audio isn't available offline or fails to load
+- [x] Update `estimateRowHeight` / re-measure check in `QuranFeed.tsx` if word markup changes the card height
+- [x] Accessibility: words are keyboard-focusable with an accessible name, and the axe tests still pass
+- [x] Tests for word splitting and numbering, and for playback behaviour
 
 ---
 
