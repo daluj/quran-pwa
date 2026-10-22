@@ -241,6 +241,7 @@ function estimateRowHeight(
     : 0
   const translationLines = showEnglish ? Math.ceil((row.verse.translations[language].length * 7.6) / textWidth) : 0
   const text = arabicLines * lineHeight + translationLines * 24.4 + (showArabic && showEnglish ? 4 : 0)
-  // Reading mode: padding only. Otherwise also the title line and the action bar.
-  return readingMode ? 12 + text + 12 + 1 : 12 + 22 + 4 + text + 4 + 42 + 1
+  // Reading mode: padding, at least as tall as the number circle (42) plus the
+  // last-read button (34). Otherwise also the title line and the action bar.
+  return readingMode ? Math.max(12 + text + 12, 12 + 42 + 34 + 12) + 1 : 12 + 22 + 4 + text + 4 + 42 + 1
 }

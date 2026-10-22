@@ -10,7 +10,8 @@ A setting for a distraction-free Quran feed: each verse shows only its number
 ### Included
 
 - **Reading mode on:** verse cards drop the "Surah N · s:a" line and the action
-  bar (save, bookmarks). The text follows the translation settings (Arabic and
+  bar (save, last recited). The "Mark as last read" button stays, under the
+  verse number, so the reader can save where they left off. The text follows the translation settings (Arabic and
   English, Arabic only, or English only).
 - **Still shown:** surah headers, the sticky header with the surah number and
   the Continue pills, deep-link highlighting.
@@ -24,9 +25,9 @@ A setting for a distraction-free Quran feed: each verse shows only its number
 
 - **New setting `readingMode`** (default off); included in backups, older
   backups load it as off.
-- While it's on, verses can't be saved or bookmarked from the feed; the user
-  turns it off to do that.
-- Card padding adjusts (no action bar); height estimates and the re-measure
+- While it's on, verses can't be saved to lists or marked as last recited from
+  the feed (the user turns it off to do that), but can be marked as last read.
+- Card padding adjusts (no action bar, but the card is at least as tall as the number circle plus the button); height estimates and the re-measure
   check include reading mode so the feed keeps its place when it's toggled.
 
 ## Context

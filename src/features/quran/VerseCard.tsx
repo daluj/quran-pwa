@@ -13,7 +13,7 @@ interface VerseCardProps {
   showArabic: boolean
   showEnglish: boolean
   language: TranslationLanguage
-  /** Only the verse number and text: no title line, no actions. */
+  /** Only the verse number, text and the last-read bookmark: no title line, no other actions. */
   readingMode: boolean
   isLastRead: boolean
   isLastRecited: boolean
@@ -40,15 +40,30 @@ export const VerseCard = memo(function VerseCard({
   onSave,
 }: VerseCardProps) {
   const playingWord = usePlayingWord(verse.key)
+  const lastReadButton = (
+    <ActionButton
+      icon={Bookmark}
+      label="Mark as last read"
+      activeLabel="Last read (tap to clear)"
+      active={isLastRead}
+      tone="read"
+      onClick={() => void toggleBookmark('lastRead', verse.key)}
+    />
+  )
   return (
     <article
       aria-label={`Surah ${surah.number}, verse ${verse.ayah}`}
       className={`flex gap-3 border-b border-border px-4 pt-3 ${readingMode ? 'pb-3' : 'pb-1'} ${highlighted ? 'verse-highlight' : ''}`}
     >
-      <div aria-hidden="true" className="pt-0.5">
-        <span className="flex size-10 items-center justify-center rounded-full bg-surface text-sm font-semibold text-muted">
+      <div className="flex flex-col items-center pt-0.5">
+        <span
+          aria-hidden="true"
+          className="flex size-10 items-center justify-center rounded-full bg-surface text-sm font-semibold text-muted"
+        >
           {verse.ayah}
         </span>
+        {/* Reading mode hides the action bar, but saving where you left off must stay possible. */}
+        {readingMode && lastReadButton}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -92,14 +107,7 @@ export const VerseCard = memo(function VerseCard({
               opensDialog
               onClick={() => onSave('prayer', verse.key)}
             />
-            <ActionButton
-              icon={Bookmark}
-              label="Mark as last read"
-              activeLabel="Last read (tap to clear)"
-              active={isLastRead}
-              tone="read"
-              onClick={() => void toggleBookmark('lastRead', verse.key)}
-            />
+            {lastReadButton}
             <ActionButton
               icon={Mic}
               label="Mark as last recited"

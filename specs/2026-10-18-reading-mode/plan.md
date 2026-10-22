@@ -16,5 +16,5 @@
 ## Group 3: Tests
 
 4. [x] Backup tests include the field.
-5. [x] App test: no buttons or title line in cards; number and text shown;
+5. [x] App test: only the last-read button and no title line in cards; number and text shown;
    surah headers stay.

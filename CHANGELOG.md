@@ -2,6 +2,10 @@
 
 ## 2026-10-22
 
+- Keep the "Mark as last read" button in reading mode, under the verse number, so you can still save where you left off
+
+## 2026-10-22
+
 - Add offline word audio: download a whole surah's word audio from Settings (progress, cancel, resume, remove), kept in its own cache; backups remember which surahs were downloaded
 
 ## 2026-10-22

@@ -32,7 +32,7 @@ stack, roadmap and a spec for every feature (see
   and Uthmani spelling differences) or the translation, with matches
   highlighted. Collections are listed below; twelve come with verses.
 - **Settings:** theme (system / light / dark), translation language (English
-  or Spanish), translation on/off, translation only (hides the Arabic), reading mode (only the verse number and text),
+  or Spanish), translation on/off, translation only (hides the Arabic), reading mode (only the verse number, text and the last-read bookmark),
   Arabic text size, and JSON backup export/import.
 
 ## Tech stack

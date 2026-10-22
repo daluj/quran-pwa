@@ -454,16 +454,19 @@ describe('Settings', () => {
     await db.settings.clear()
   })
 
-  it('reading mode shows only the verse number and text', async () => {
+  it('reading mode shows only the verse number, text and the last-read bookmark', async () => {
     const router = renderApp('/settings')
     fireEvent.click(await screen.findByRole('switch', { name: 'Reading mode' }))
     await vi.waitFor(async () => expect((await db.settings.get('readingMode'))?.value).toBe(true))
 
     await router.navigate('/quran/1/1')
     const card = await screen.findByRole('article', { name: 'Surah 1, verse 2' })
-    // No action buttons: the only buttons left are the tappable Arabic words.
+    // The only buttons besides the tappable Arabic words: the last-read bookmark.
     const arabic = card.querySelector('p[lang="ar"]')!
-    expect(within(card).queryAllByRole('button').filter((b) => !arabic.contains(b))).toHaveLength(0)
+    const buttons = within(card).queryAllByRole('button').filter((b) => !arabic.contains(b))
+    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual(['Mark as last read'])
+    fireEvent.click(buttons[0]!)
+    await vi.waitFor(async () => expect((await db.bookmarks.get('lastRead'))?.verseKey).toBe('1:2'))
     expect(within(card).queryByText(/1:2/)).toBeNull()
     expect(within(card).getByText('2')).toBeTruthy()
     expect(card.querySelector('p[lang="ar"]')).toBeTruthy()

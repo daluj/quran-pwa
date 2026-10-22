@@ -8,8 +8,9 @@
 
 ### Specific test coverage required
 
-- [x] In reading mode a verse card has no buttons and no "s:a" title line, and
-      shows the verse number, Arabic and translation
+- [x] In reading mode a verse card has no buttons except "Mark as last read"
+      (which saves the bookmark) and no "s:a" title line, and shows the verse
+      number, Arabic and translation
 - [x] Surah headers are still shown
 - [x] Backups restore `readingMode`; older backups load it as off
 
