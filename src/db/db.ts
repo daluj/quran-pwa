@@ -28,6 +28,19 @@ export interface Bookmark {
   updatedAt: number
 }
 
+/**
+ * One row per surah whose word audio the user downloaded (or has in a backup
+ * but not on this device: `wanted`). The audio itself is in Cache Storage.
+ */
+export interface WordAudioDownload {
+  surah: number
+  status: 'complete' | 'partial' | 'wanted'
+  /** Words saved on this device. */
+  words: number
+  bytes: number
+  updatedAt: number
+}
+
 export type ThemePreference = 'system' | 'light' | 'dark'
 
 export interface Settings {
@@ -75,6 +88,7 @@ export class QuranDB extends Dexie {
   bookmarks!: EntityTable<Bookmark, 'type'>
   settings!: EntityTable<SettingRow, 'key'>
   meta!: EntityTable<MetaRow, 'key'>
+  wordAudioDownloads!: EntityTable<WordAudioDownload, 'surah'>
 
   constructor(name = 'quran-pwa') {
     super(name)
@@ -87,6 +101,8 @@ export class QuranDB extends Dexie {
       settings: '&key',
       meta: '&key',
     })
+    // Adds the word audio downloads; every other table is unchanged.
+    this.version(2).stores({ wordAudioDownloads: '&surah' })
   }
 }
 

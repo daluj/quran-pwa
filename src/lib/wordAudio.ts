@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { OFFLINE_CACHE } from './wordAudioPlan'
 import { wordAudioUrl } from './words'
 
 // One shared <audio> element: only one word plays at a time, and a verse card
@@ -53,6 +54,17 @@ function releaseObjectUrl() {
   objectUrl = undefined
 }
 
+/** A downloaded word if there is one, otherwise the network (and the on-demand cache). */
+async function fetchWord(url: string): Promise<Response> {
+  try {
+    const saved = typeof caches === 'undefined' ? undefined : await caches.match(url, { cacheName: OFFLINE_CACHE })
+    if (saved) return saved
+  } catch {
+    // Cache Storage unavailable: use the network.
+  }
+  return fetch(url)
+}
+
 /** Plays one word (1-based position); tapping the word that is playing stops it. */
 export function playWord(verseKey: string, position: number) {
   const current = snapshot.playing
@@ -67,7 +79,8 @@ export function playWord(verseKey: string, position: number) {
   setSnapshot({ playing: { key: verseKey, position }, error: undefined })
   // Downloaded as a whole file (not streamed by the <audio> element) so the
   // service worker caches it with a plain 200 response and it plays offline.
-  void fetch(wordAudioUrl(surah, ayah, position))
+  // Words from a surah download are read from their own cache first.
+  void fetchWord(wordAudioUrl(surah, ayah, position))
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       return response.blob()

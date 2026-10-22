@@ -49,7 +49,9 @@ export default defineConfig({
         // cached response is a plain 200.
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.origin === 'https://audio.qurancdn.com' && url.pathname.startsWith('/wbw/'),
+            // Surah downloads ask for no-store: they go straight to their own cache.
+            urlPattern: ({ url, request }) =>
+              url.origin === 'https://audio.qurancdn.com' && url.pathname.startsWith('/wbw/') && request.cache !== 'no-store',
             handler: 'CacheFirst',
             options: {
               cacheName: 'word-audio',

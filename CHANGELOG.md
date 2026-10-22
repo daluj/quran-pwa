@@ -2,6 +2,10 @@
 
 ## 2026-10-22
 
+- Add offline word audio: download a whole surah's word audio from Settings (progress, cancel, resume, remove), kept in its own cache; backups remember which surahs were downloaded
+
+## 2026-10-22
+
 - Add word-by-word audio: tap an Arabic word in the Quran feed to hear it, tap again to stop; words you have played work offline
 - Add `npm run verify:word-audio`, which lists the six verses whose word count differs from the audio, and credit the audio in Settings and `SOURCES.md`
 

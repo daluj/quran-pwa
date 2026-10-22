@@ -21,7 +21,8 @@ stack, roadmap and a spec for every feature (see
   (`/quran/2/255`) scroll to the verse and highlight it. The scroll position
   is kept when switching tabs. Tap an Arabic word to hear it (word-by-word
   audio from Quran.com's CDN); tap it again to stop. Words you have played
-  keep working offline.
+  keep working offline, and Settings can download a whole surah's word audio
+  (progress, cancel, resume, remove) so every word works without a connection.
 - **Prayers:** prayer topics holding verses that can be reordered, removed or
   opened in the Quran. Seven topics come with verses (Forgiveness, Guidance,
   Protection, Gratitude, Patience, Provisions, Knowledge); all can be renamed
@@ -95,6 +96,7 @@ src/
   db/                Dexie schema, seeding, lists, bookmarks, settings, backups
   features/          quran/, prayers/, explore/, lists/, settings/
   lib/               Arabic normalization, reference parsing, search, word audio
+                     (player, surah downloads)
   styles/            Tailwind and theme tokens
   theme/             Light/dark theme provider
 tests/               Vitest tests
@@ -128,7 +130,9 @@ every verse in it exists.
 
 - **Word audio:** one MP3 per word from Quran.com's CDN
   (`audio.qurancdn.com/wbw/`), played on demand and cached in the browser;
-  license still to confirm in `data/raw/SOURCES.md`. Six verses whose word
+  license still to confirm in `data/raw/SOURCES.md`. Downloaded surahs are kept
+  in their own cache (`word-audio-offline`); backups remember which surahs
+  were downloaded, not the audio. Six verses whose word
   count differs from the audio are in `src/data/word-audio-exceptions.json`.
 
 User data (lists, bookmarks, settings) lives only in the browser's IndexedDB.

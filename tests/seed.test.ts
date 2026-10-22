@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import Dexie from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { QuranMeta, Surah, Verse } from '../src/data/types'
 import { QuranDB } from '../src/db/db'
@@ -130,5 +131,31 @@ describe('settings', () => {
     await setSetting('theme', 'dark')
     expect((await getSettings()).theme).toBe('dark')
     await appDb.delete()
+  })
+})
+
+describe('schema upgrade', () => {
+  it('opens a version 1 database as version 2 keeping its data', async () => {
+    const name = `upgrade-${n++}`
+    const old = new Dexie(name)
+    old.version(1).stores({
+      verses: '&key, surah, [surah+ayah]',
+      surahs: '&number',
+      lists: '&id, type, name',
+      listItems: '&id, listId, verseKey, [listId+position], [listId+verseKey]',
+      bookmarks: '&type',
+      settings: '&key',
+      meta: '&key',
+    })
+    await old.open()
+    await old.table('bookmarks').add({ type: 'lastRead', verseKey: '2:255', updatedAt: 1 })
+    old.close()
+
+    const upgraded = new QuranDB(name)
+    expect(await upgraded.bookmarks.get('lastRead')).toMatchObject({ verseKey: '2:255' })
+    await upgraded.wordAudioDownloads.add({ surah: 1, status: 'wanted', words: 0, bytes: 0, updatedAt: 1 })
+    await seedQuranData(upgraded, source())
+    expect(await upgraded.wordAudioDownloads.count()).toBe(1)
+    await upgraded.delete()
   })
 })

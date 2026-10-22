@@ -68,7 +68,9 @@ npm run verify:word-audio  # check word counts against the audio CDN (network, ~
 - `src/db/`: Dexie schema (`db.ts`), first-launch seeding (`seed.ts`, `init.ts`),
   lists, bookmarks, settings and backups. Verses/surahs are re-seeded when the
   data hash changes; user tables (`lists`, `listItems`, `bookmarks`,
-  `settings`) are never touched by seeding.
+  `settings`, `wordAudioDownloads`) are never touched by seeding. Downloaded
+  word audio lives in Cache Storage (`word-audio-offline`), summarized by
+  `wordAudioDownloads`; backups carry the surah numbers, never the audio.
 - `src/features/`: `quran/` (virtualized feed), `lists/` (shared list pages and
   save sheet), `prayers/`, `explore/` (search), `settings/`.
 - `src/lib/`: Arabic normalization (`arabic.ts`), reference parsing

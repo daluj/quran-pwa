@@ -65,7 +65,7 @@ describe('backup', () => {
     await sampleData()
     const backup = await createBackup(db, new Date('2026-10-17T10:00:00Z'))
     expect(backup).toMatchObject({ app: BACKUP_APP, format: 1, exportedAt: '2026-10-17T10:00:00.000Z' })
-    expect(summarizeBackup(backup)).toEqual({ prayer: 6, collection: 1, verses: 3, bookmarks: 1 })
+    expect(summarizeBackup(backup)).toEqual({ prayer: 6, collection: 1, verses: 3, bookmarks: 1, wordAudioSurahs: 0 })
     expect(backup.settings).toEqual({ theme: 'dark', translationLanguage: 'en', showTranslation: true, englishOnly: false, readingMode: false, arabicFontSize: 34 })
   })
 
@@ -160,5 +160,40 @@ describe('backup', () => {
     await expect(restoreBackup(backup, db)).rejects.toThrow()
     const after = await createBackup(db)
     expect({ ...after, exportedAt: '' }).toEqual({ ...before, exportedAt: '' })
+  })
+
+  describe('word audio downloads', () => {
+    const row = (surah: number, status: 'complete' | 'partial' | 'wanted') => ({ surah, status, words: 5, bytes: 100, updatedAt: 1 })
+
+    it('exports the downloaded surahs, not the audio', async () => {
+      await db.wordAudioDownloads.bulkAdd([row(112, 'complete'), row(2, 'partial'), row(5, 'wanted')])
+      const backup = await createBackup(db)
+      expect(backup.wordAudioSurahs).toEqual([2, 5, 112])
+      expect(summarizeBackup(backup).wordAudioSurahs).toBe(3)
+    })
+
+    it('loads an older backup without the field', () => {
+      const backup = validateBackup({ app: BACKUP_APP, format: 1, lists: [], listItems: [], bookmarks: [], settings: {} }, () => true)
+      expect(backup.wordAudioSurahs).toEqual([])
+    })
+
+    it('ignores invalid surahs and duplicates', () => {
+      const backup = validateBackup(
+        { app: BACKUP_APP, format: 1, lists: [], listItems: [], bookmarks: [], settings: {}, wordAudioSurahs: [3, 0, 115, '2', 2.5, 3, null, 1] },
+        () => true,
+      )
+      expect(backup.wordAudioSurahs).toEqual([1, 3])
+    })
+
+    it('restores them as surahs to download again, keeping downloads already on the device', async () => {
+      await db.wordAudioDownloads.add(row(112, 'complete'))
+      const backup = validateBackup(
+        { app: BACKUP_APP, format: 1, lists: [], listItems: [], bookmarks: [], settings: {}, wordAudioSurahs: [2, 112] },
+        () => true,
+      )
+      await restoreBackup(backup, db)
+      expect((await db.wordAudioDownloads.get(2))?.status).toBe('wanted')
+      expect((await db.wordAudioDownloads.get(112))?.status).toBe('complete')
+    })
   })
 })

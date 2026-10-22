@@ -34,6 +34,10 @@
   `CacheFirst` runtime cache (`word-audio`, 1500 files, 30 days) keeps the
   words the user has played. The player downloads each file whole with
   `fetch` and plays it from a blob URL, so the cached response is a plain 200.
+- **Offline word audio:** a surah's download (Settings, foreground, 4 parallel
+  fetches, resumable) goes into its own `word-audio-offline` cache, which
+  nothing trims; the player looks there first. Requests use `cache: 'no-store'`,
+  which the runtime route ignores.
 - Web app manifest and icons generated from `public/favicon.svg`
   (`npm run icons`)
 
@@ -43,6 +47,8 @@
   `src/db/db.ts`
   - Seeded tables: `verses`, `surahs`
   - User tables: `lists`, `listItems`, `bookmarks`, `settings`
+  - Downloads: `wordAudioDownloads` (schema version 2): per surah `complete`,
+    `partial` or `wanted` (from a backup), words and bytes; never touched by seeding
   - Internal: `meta` (data version, defaults seeded)
 - `navigator.storage.persist()` is requested on startup
 - Backups are JSON files (`src/db/backup.ts`), validated before restore

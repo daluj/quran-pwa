@@ -10,6 +10,7 @@ import {
 } from './db'
 import { TRANSLATION_LANGUAGES, type TranslationLanguage } from '../data/types'
 import { getSettings } from './settings'
+import { markWanted } from './wordAudioDownloads'
 
 // Backup file: everything the user created (lists, their verses, bookmarks,
 // settings). The Quran text isn't included; it ships with the app.
@@ -25,6 +26,8 @@ export interface Backup {
   listItems: ListItem[]
   bookmarks: Bookmark[]
   settings: Settings
+  /** Surahs whose word audio was on the device; the audio itself isn't included. */
+  wordAudioSurahs: number[]
 }
 
 export class BackupError extends Error {
@@ -35,7 +38,8 @@ export class BackupError extends Error {
 }
 
 export async function createBackup(database: QuranDB = db, now = new Date()): Promise<Backup> {
-  return database.transaction('r', [database.lists, database.listItems, database.bookmarks, database.settings], async () => ({
+  const tables = [database.lists, database.listItems, database.bookmarks, database.settings, database.wordAudioDownloads]
+  return database.transaction('r', tables, async () => ({
     app: BACKUP_APP,
     format: BACKUP_FORMAT,
     exportedAt: now.toISOString(),
@@ -43,6 +47,8 @@ export async function createBackup(database: QuranDB = db, now = new Date()): Pr
     listItems: await database.listItems.toArray(),
     bookmarks: await database.bookmarks.toArray(),
     settings: await getSettings(database),
+    wordAudioSurahs: (await database.wordAudioDownloads.orderBy('surah').toArray())
+      .map((row) => row.surah),
   }))
 }
 
@@ -159,7 +165,15 @@ export function validateBackup(raw: unknown, verseExists: (key: string) => boole
     listItems,
     bookmarks,
     settings,
+    wordAudioSurahs: validSurahs(raw.wordAudioSurahs),
   }
+}
+
+/** Surah numbers from an optional list: integers 1–114, no duplicates; anything else is ignored. */
+function validSurahs(value: unknown): number[] {
+  if (!Array.isArray(value)) return []
+  const surahs = value.filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= 114)
+  return [...new Set(surahs)].sort((a, b) => a - b)
 }
 
 /** Read and validate a backup file's text. */
@@ -181,7 +195,7 @@ export async function parseBackupFile(text: string, database: QuranDB = db): Pro
 export async function restoreBackup(backup: Backup, database: QuranDB = db): Promise<void> {
   await database.transaction(
     'rw',
-    [database.lists, database.listItems, database.bookmarks, database.settings],
+    [database.lists, database.listItems, database.bookmarks, database.settings, database.wordAudioDownloads],
     async () => {
       await Promise.all([
         database.lists.clear(),
@@ -195,6 +209,9 @@ export async function restoreBackup(backup: Backup, database: QuranDB = db): Pro
       await database.settings.bulkAdd(
         (Object.keys(backup.settings) as (keyof Settings)[]).map((key) => ({ key, value: backup.settings[key] })),
       )
+      // Downloads on this device are kept (the audio isn't user data); the
+      // backup's surahs not yet here are listed to download again.
+      await markWanted(backup.wordAudioSurahs, database)
     },
   )
 }
@@ -204,6 +221,7 @@ export interface BackupSummary {
   collection: number
   verses: number
   bookmarks: number
+  wordAudioSurahs: number
 }
 
 export function summarizeBackup(backup: Backup): BackupSummary {
@@ -212,5 +230,6 @@ export function summarizeBackup(backup: Backup): BackupSummary {
     collection: backup.lists.filter((l) => l.type === 'collection').length,
     verses: backup.listItems.length,
     bookmarks: backup.bookmarks.length,
+    wordAudioSurahs: backup.wordAudioSurahs.length,
   }
 }

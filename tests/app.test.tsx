@@ -525,6 +525,96 @@ describe('Settings', () => {
   })
 })
 
+describe('Word audio offline', () => {
+  // Cache Storage and the audio CDN, faked: each word is a 1 KB file.
+  function fakeAudioDownloads() {
+    const store = new Map<string, Response>()
+    vi.stubGlobal('caches', {
+      open: async () => ({
+        put: async (url: string, response: Response) => void store.set(url, response),
+        keys: async () => [...store.keys()].map((url) => ({ url })),
+        match: async (request: string | { url: string }) => store.get(typeof request === 'string' ? request : request.url)?.clone(),
+        delete: async (url: string) => store.delete(url),
+      }),
+      match: async () => undefined,
+    })
+    const realFetch = fetch
+    vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) =>
+      String(input).includes('audio.qurancdn.com')
+        ? Promise.resolve(new Response(new Uint8Array(1024), { status: 200 }))
+        : realFetch(input, init),
+    )
+    return store
+  }
+
+  async function openSurahList() {
+    renderApp('/settings')
+    const details = (await screen.findByText('Choose surahs')).closest('details')!
+    details.open = true
+    fireEvent(details, new Event('toggle'))
+    await within(details).findByText('Surah 112')
+    return details
+  }
+
+  afterEach(async () => {
+    await db.wordAudioDownloads.clear()
+    // Only the globals faked here: the layout fakes from beforeAll stay.
+    vi.stubGlobal('caches', undefined)
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(versesJson, { status: 200 })))
+  })
+
+  it('lists the 114 surahs by number, with an estimate', async () => {
+    fakeAudioDownloads()
+    const details = await openSurahList()
+    expect(within(details).getAllByRole('listitem')).toHaveLength(114)
+    expect(within(details).getByText('Surah 1')).toBeTruthy()
+    expect(within(details).getByText('29 words · about 2 MB')).toBeTruthy()
+  })
+
+  it('downloads a surah, shows it as downloaded, and removes it', async () => {
+    const store = fakeAudioDownloads()
+    await openSurahList()
+    fireEvent.click(screen.getByRole('button', { name: 'Download surah 112' }))
+    await vi.waitFor(async () => expect((await db.wordAudioDownloads.get(112))?.status).toBe('complete'))
+    expect(store.size).toBe(15)
+    expect(await screen.findByText(/Downloaded · 15 KB/)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove surah 112' }))
+    await vi.waitFor(async () => expect(await db.wordAudioDownloads.get(112)).toBeUndefined())
+    expect(store.size).toBe(0)
+    expect(await screen.findByText('15 words · about 825 KB')).toBeTruthy()
+  })
+
+  it('asks before downloading a large surah, and does nothing on Cancel', async () => {
+    const store = fakeAudioDownloads()
+    await openSurahList()
+    fireEvent.click(screen.getByRole('button', { name: 'Download surah 2' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Download surah 2?' })
+    expect(within(dialog).getByText(/This is a large download/)).toBeTruthy()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(store.size).toBe(0)
+    expect(await db.wordAudioDownloads.count()).toBe(0)
+  })
+
+  it('shows surahs from a backup as not on this device', async () => {
+    fakeAudioDownloads()
+    await db.wordAudioDownloads.put({ surah: 112, status: 'wanted', words: 0, bytes: 0, updatedAt: 1 })
+    await openSurahList()
+    expect(await screen.findByText('In your backup · not on this device')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Download surah 112' })).toBeTruthy()
+  })
+
+  it('has no accessibility violations with the list open', async () => {
+    fakeAudioDownloads()
+    await openSurahList()
+    const { violations } = await axe.run(
+      { exclude: [['nav.fixed']] },
+      { rules: { 'color-contrast': { enabled: false } }, resultTypes: ['violations'] },
+    )
+    expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([])
+  })
+})
+
 describe('accessibility (axe)', () => {
   // Color contrast needs real layout; it's checked in a browser instead. The
   // sidebar and the mobile tab bar are both "Main" navigation, and CSS shows

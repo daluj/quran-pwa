@@ -1,5 +1,5 @@
 import { Download, Upload } from 'lucide-react'
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import { buttonStyles } from '../../components/buttonStyles'
 import { Dialog } from '../../components/Dialog'
 import { Header } from '../../components/layout/Header'
@@ -18,7 +18,9 @@ import {
 import { ARABIC_FONT_SIZE, type ThemePreference } from '../../db/db'
 import { setSetting, useSettings } from '../../db/settings'
 import { forDisplay } from '../../lib/arabic'
+import { usePersistedStorage } from '../../lib/usePersistedStorage'
 import { useTheme } from '../../theme/ThemeProvider'
+import { WordAudioOffline } from './WordAudioOffline'
 
 export function SettingsPage() {
   return (
@@ -27,6 +29,9 @@ export function SettingsPage() {
       <div className="divide-y divide-border">
         <AppearanceSection />
         <ReadingSection />
+        <Section title="Word audio offline">
+          <WordAudioOffline />
+        </Section>
         <DataSection />
         <AboutSection />
       </div>
@@ -322,6 +327,9 @@ function DataSection() {
               <li>{summary.collection} collections</li>
               <li>{summary.verses} saved verses</li>
               <li>{summary.bookmarks} bookmarks</li>
+              {summary.wordAudioSurahs > 0 && (
+                <li>{summary.wordAudioSurahs} surahs of word audio to download again (the audio isn’t in the file)</li>
+              )}
             </ul>
             <p className="font-bold">It will replace all your current topics, collections, bookmarks and settings.</p>
           </div>
@@ -329,22 +337,6 @@ function DataSection() {
       </Dialog>
     </Section>
   )
-}
-
-/** Whether the browser granted persistent storage; undefined while checking or unsupported. */
-function usePersistedStorage(): boolean | undefined {
-  const [persisted, setPersisted] = useState<boolean>()
-  useEffect(() => {
-    let cancelled = false
-    navigator.storage
-      ?.persisted?.()
-      .then((value) => !cancelled && setPersisted(value))
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
-  return persisted
 }
 
 function AboutSection() {

@@ -173,11 +173,12 @@ Spec: [2026-10-22-word-audio](2026-10-22-word-audio/)
 
 **Goal:** Choose surahs whose word audio is kept offline, so tapping any word
 works without a connection. Builds on the on-demand cache from phase 13.
+Spec: [2026-10-22-word-audio-offline](2026-10-22-word-audio-offline/)
 
-- [ ] Download the word audio of a whole surah for offline use, with progress, cancel and resume after a failure
-- [ ] Store downloaded audio so the browser doesn't evict it (persistent storage request) and so it is separate from the size-limited on-demand cache
-- [ ] Show which surahs are downloaded and how much space they use
-- [ ] Remove a download; free the space
-- [ ] Include the choice of downloaded surahs (not the audio) in backups; older backups must still load
-- [ ] Estimate the size before downloading and warn on low storage or a metered connection
-- [ ] Tests for download, progress, removal and backup validation
+- [x] Download the word audio of a whole surah for offline use, with progress, cancel and resume after a failure
+- [x] Store downloaded audio so the browser doesn't evict it (persistent storage request) and so it is separate from the size-limited on-demand cache
+- [x] Show which surahs are downloaded and how much space they use
+- [x] Remove a download; free the space
+- [x] Include the choice of downloaded surahs (not the audio) in backups; older backups must still load
+- [x] Estimate the size before downloading and warn on low storage or a metered connection
+- [x] Tests for download, progress, removal and backup validation
