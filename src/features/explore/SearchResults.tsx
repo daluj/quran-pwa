@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { Highlighted } from '../../components/Highlighted'
 import type { Verse } from '../../data/types'
 import { useSettings, useTextVisibility } from '../../db/settings'
+import { forDisplay } from '../../lib/arabic'
 import type { ReferenceResult } from '../../lib/reference'
 import { highlightRanges, MIN_QUERY_LENGTH, type SearchQuery } from '../../lib/search'
 
@@ -97,9 +98,9 @@ const ResultCard = memo(function ResultCard({ verse, query }: { verse: Verse; qu
           style={{ ['--arabic-font-size' as string]: `${arabicFontSize}px` }}
         >
           {arabic ? (
-            <Highlighted text={verse.textArabic} ranges={highlightRanges(verse.textArabic, query)} />
+            <Highlighted text={forDisplay(verse.textArabic)} ranges={highlightRanges(verse.textArabic, query)} />
           ) : (
-            verse.textArabic
+            forDisplay(verse.textArabic)
           )}
         </p>
       )}

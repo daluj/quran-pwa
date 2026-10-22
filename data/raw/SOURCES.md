@@ -17,6 +17,23 @@ Files in this folder are imported as-is and never edited by hand.
   (except 9) so the Bismillah is shown once, in the surah header, matching the
   translation's verse boundaries. The raw file is not modified.
 
+## Arabic font — `src/assets/fonts/UthmanicHafs1Ver18.woff2`
+
+- **Name:** KFGQPC Uthmanic Hafs (version 18), the font Quran.com uses for the
+  Uthmani script
+- **Source:** King Fahd Glorious Quran Printing Complex (https://qurancomplex.gov.sa),
+  copied from https://quran.com/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2
+  on 2026-10-22
+- **License:** **to confirm.** KFGQPC publishes it for free use in Quran
+  applications; check the terms on qurancomplex.gov.sa before a public release.
+  The file is used unmodified.
+- **Why:** Amiri Quran misplaced dagger alifs, hamzas and small marks in some
+  verses (e.g. 2:104). Amiri Quran stays as the fallback.
+- **Processing note:** the font draws Tanzil's U+06DF (small high rounded zero)
+  as a dotted circle and has the mark at U+06E0, so the app swaps the two when
+  *showing* text (`forDisplay` in `src/lib/arabic.ts`). The data and search are
+  unchanged.
+
 ## Spanish translation — `es.translation.txt`
 
 - **Name:** Spanish (Spain) translation, made for this project

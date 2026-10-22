@@ -9,6 +9,7 @@ import type { List, ListType } from '../../db/db'
 import { useList, useListEntries, type ListEntry } from '../../db/listHooks'
 import { deleteList, MAX_LIST_NAME, moveVerse, removeVerse, renameList } from '../../db/lists'
 import { useSettings, useTextVisibility } from '../../db/settings'
+import { forDisplay } from '../../lib/arabic'
 import { LIST_LABELS, verseCountLabel } from './labels'
 
 /** One prayer topic or collection: its verses as a feed, with editing. */
@@ -108,7 +109,7 @@ function Entries({ list, entries }: { list: List; entries: ListEntry[] }) {
             </p>
             {showArabic && (
               <p lang="ar" className="quran-text mt-1">
-                {verse.textArabic}
+                {forDisplay(verse.textArabic)}
               </p>
             )}
             {showEnglish && (

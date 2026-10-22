@@ -17,6 +17,7 @@ import {
 } from '../../db/backup'
 import { ARABIC_FONT_SIZE, type ThemePreference } from '../../db/db'
 import { setSetting, useSettings } from '../../db/settings'
+import { forDisplay } from '../../lib/arabic'
 import { useTheme } from '../../theme/ThemeProvider'
 
 export function SettingsPage() {
@@ -200,7 +201,7 @@ function ReadingSection() {
           className="quran-text mt-3 rounded-xl bg-surface px-4 py-2 text-center!"
           style={{ ['--arabic-font-size' as string]: `${arabicFontSize}px` }}
         >
-          {meta.bismillah}
+          {forDisplay(meta.bismillah)}
         </p>
       </div>
     </Section>

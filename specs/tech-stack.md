@@ -21,7 +21,9 @@
 - **lucide-react** — icons
 - **Tailwind CSS 4** (`@tailwindcss/vite`) — utility styling; theme tokens are
   CSS variables in `src/styles/index.css`, switched by `data-theme` on `<html>`
-- **Amiri Quran** via `@fontsource/amiri-quran` — bundled locally
+- **KFGQPC Uthmanic Hafs** (`src/assets/fonts/`, the font Quran.com uses) for the
+  Arabic, with **Amiri Quran** via `@fontsource/amiri-quran` as the fallback —
+  both bundled locally; see `data/raw/SOURCES.md` (Hafs license still to confirm)
 
 ## Offline & PWA
 

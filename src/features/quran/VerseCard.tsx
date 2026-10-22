@@ -3,6 +3,7 @@ import { memo } from 'react'
 import type { Surah, TranslationLanguage, Verse } from '../../data/types'
 import { toggleBookmark } from '../../db/bookmarks'
 import type { ListType } from '../../db/db'
+import { forDisplay } from '../../lib/arabic'
 
 interface VerseCardProps {
   verse: Verse
@@ -56,7 +57,7 @@ export const VerseCard = memo(function VerseCard({
         )}
         {showArabic && (
           <p lang="ar" className="quran-text">
-            {verse.textArabic}
+            {forDisplay(verse.textArabic)}
           </p>
         )}
         {showEnglish && (

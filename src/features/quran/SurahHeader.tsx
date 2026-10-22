@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import type { Surah } from '../../data/types'
+import { forDisplay } from '../../lib/arabic'
 
 interface SurahHeaderProps {
   surah: Surah
@@ -23,7 +24,7 @@ export const SurahHeader = memo(function SurahHeader({ surah, bismillah }: Surah
       </p>
       {surah.bismillah && bismillah && (
         <p lang="ar" className="quran-text mt-3 text-center!">
-          {bismillah}
+          {forDisplay(bismillah)}
         </p>
       )}
     </section>

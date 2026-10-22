@@ -99,6 +99,17 @@ export function normalizeLatin(text: string): string {
 
 const ARABIC_LETTER = /[\u0621-\u064A\u0671-\u06D3]/
 
+/**
+ * Tanzil writes the silent-letter mark after a final alif (as in the end of
+ * "amanu") as U+06DF; the KFGQPC Uthmanic Hafs font draws that code point as a
+ * dotted circle and has the mark at U+06E0. Used only when showing text: the
+ * stored text, and search, keep Tanzil's code points. Same length, so highlight
+ * ranges still line up.
+ */
+export function forDisplay(arabic: string): string {
+  return arabic.replaceAll('\u06DF', '\u06E0')
+}
+
 export function containsArabic(text: string): boolean {
   return ARABIC_LETTER.test(text)
 }

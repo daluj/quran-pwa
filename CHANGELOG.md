@@ -1,4 +1,8 @@
-# Changelog 
+# Changelog
+
+## 2026-10-22
+
+- Show the Arabic in the KFGQPC Uthmanic Hafs font (as Quran.com does), fixing misplaced marks in verses such as 2:104
 
 ## 2026-10-21
 
