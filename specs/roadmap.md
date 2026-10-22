@@ -146,31 +146,37 @@ Spec: [2026-10-21-spanish-translation-app](2026-10-21-spanish-translation-app/)
 
 ---
 
-## Phase 13: Audio Recitation — Play a Verse
+## Phase 13: Word-by-Word Audio
 
-**Goal:** Listen to a single verse recited.
+**Goal:** Tap an Arabic word in the feed to hear that word pronounced.
 
-- [ ] Choose a recitation source and reciter with a clear license (record it in `data/raw/SOURCES.md`)
-- [ ] Decide how audio is fetched and cached (it can't all be precached)
-- [ ] Add a play/stop control to verse cards (respecting reading mode)
-- [ ] Explain clearly when a verse's audio isn't available offline
+Words are served by the Quran.com CDN as one MP3 per word:
+`https://audio.qurancdn.com/wbw/SSS_AAA_WWW.mp3`, with surah, ayah and word
+position zero-padded to three digits. For example `002_101_001.mp3` is the
+first word of 2:101.
+
+- [ ] Confirm the audio source's license and terms, and record it in `data/raw/SOURCES.md`
+- [ ] Split each verse's Arabic text into tappable words, with positions that match the CDN's numbering (check against the Tanzil text: verse-end marks and stop signs must not count as words)
+- [ ] Tap a word to play its audio; tapping another word stops the current one
+- [ ] Show which word is playing (highlight) and keep selection, copy and the verse-card actions working
+- [ ] Respect reading mode and the language setting (only when the Arabic is shown)
+- [ ] Decide how audio is cached: fetch on demand and cache what was played (Workbox runtime caching with a size limit), since precaching ~77k words is not an option
+- [ ] Explain clearly when a word's audio isn't available offline or fails to load
+- [ ] Update `estimateRowHeight` / re-measure check in `QuranFeed.tsx` if word markup changes the card height
+- [ ] Accessibility: words are keyboard-focusable with an accessible name, and the axe tests still pass
+- [ ] Tests for word splitting and numbering, and for playback behaviour
 
 ---
 
-## Phase 14: Audio Recitation — Continuous Playback
+## Phase 14: Word-by-Word Audio — Offline Audio
 
-**Goal:** Recite a surah verse after verse, following along in the feed.
+**Goal:** Choose surahs whose word audio is kept offline, so tapping any word
+works without a connection. Builds on the on-demand cache from phase 13.
 
-- [ ] Play from a verse to the end of its surah
-- [ ] Scroll to and highlight the verse being recited
-- [ ] Pause/resume, and stop when leaving the Quran section
-
----
-
-## Phase 15: Audio Recitation — Offline Audio
-
-**Goal:** Choose surahs to keep offline.
-
-- [ ] Download a surah's audio for offline use, with progress
+- [ ] Download the word audio of a whole surah for offline use, with progress, cancel and resume after a failure
+- [ ] Store downloaded audio so the browser doesn't evict it (persistent storage request) and so it is separate from the size-limited on-demand cache
 - [ ] Show which surahs are downloaded and how much space they use
-- [ ] Remove downloads; include the choice (not the audio) in backups
+- [ ] Remove a download; free the space
+- [ ] Include the choice of downloaded surahs (not the audio) in backups; older backups must still load
+- [ ] Estimate the size before downloading and warn on low storage or a metered connection
+- [ ] Tests for download, progress, removal and backup validation
