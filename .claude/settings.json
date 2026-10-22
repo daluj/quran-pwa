@@ -15,8 +15,6 @@
       "Bash(git show:*)"
     ],
     "deny": [
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Read(./.env)",
       "Read(./.env.*)"
     ]
