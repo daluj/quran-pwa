@@ -21,18 +21,25 @@ export function ExplorePage() {
 
   // The input updates immediately; the URL (and results) follow after a pause.
   // When the URL changes from outside (back/forward, the sidebar search box),
-  // the input follows it.
+  // the input follows it. A URL change we wrote ourselves must not: the user
+  // may have typed more by the time it lands, and overwriting the input would
+  // delete those words (and break the mobile keyboard's composition).
   const [text, setText] = useState(q)
   const [lastQ, setLastQ] = useState(q)
+  const [pushed, setPushed] = useState<string | null>(null)
   if (q !== lastQ) {
     setLastQ(q)
-    if (q !== text.trim()) setText(q)
+    if (pushed === q) setPushed(null)
+    else if (q !== text.trim()) setText(q)
   }
 
   useEffect(() => {
     const next = text.trim()
     if (next === q) return
-    const timer = setTimeout(() => setParams(next ? { q: next } : {}, { replace: true }), DEBOUNCE_MS)
+    const timer = setTimeout(() => {
+      setPushed(next)
+      setParams(next ? { q: next } : {}, { replace: true })
+    }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
   }, [text, q, setParams])
 
