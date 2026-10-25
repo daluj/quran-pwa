@@ -128,6 +128,17 @@ describe('app shell', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Explore' })).toBeTruthy()
   })
 
+  it('keeps what was typed in the Explore search box while the URL catches up', async () => {
+    const router = renderApp('/explore')
+    const box = (await screen.findByRole('searchbox', { name: 'Search the Quran' })) as HTMLInputElement
+    fireEvent.change(box, { target: { value: 'mercy' } })
+    await vi.waitFor(() => expect(router.state.location.search).toBe('?q=mercy'))
+    // More typing right after the URL update must not be reset to the older query.
+    fireEvent.change(box, { target: { value: 'mercy of God' } })
+    await vi.waitFor(() => expect(router.state.location.search).toBe('?q=mercy+of+God'))
+    expect(box.value).toBe('mercy of God')
+  })
+
   it('cycles the theme and saves the choice', async () => {
     renderApp('/quran')
     const toggle = (await screen.findAllByRole('button', { name: /^System theme/ }))[0]!
