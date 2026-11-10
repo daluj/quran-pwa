@@ -5,8 +5,8 @@ description: Starts the next Quran PWA feature the spec-driven way. Finds the ne
 
 # Feature Spec
 
-Write the spec before any code. Never commit, merge or push: the owner reviews
-and commits everything.
+Write the spec before any code. Commit and push to the working branch (never
+merge or push to `main`); the owner reviews on the branch.
 
 ## Workflow
 

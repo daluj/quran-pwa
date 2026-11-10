@@ -41,6 +41,13 @@ export interface WordAudioDownload {
   updatedAt: number
 }
 
+/** One row per daily item ticked; it counts only while `date` is today (local). */
+export interface DailyCheck {
+  itemId: string
+  /** Local calendar date, `YYYY-MM-DD`. */
+  date: string
+}
+
 export type ThemePreference = 'system' | 'light' | 'dark'
 
 export interface Settings {
@@ -89,6 +96,7 @@ export class QuranDB extends Dexie {
   settings!: EntityTable<SettingRow, 'key'>
   meta!: EntityTable<MetaRow, 'key'>
   wordAudioDownloads!: EntityTable<WordAudioDownload, 'surah'>
+  dailyChecks!: EntityTable<DailyCheck, 'itemId'>
 
   constructor(name = 'quran-pwa') {
     super(name)
@@ -103,6 +111,8 @@ export class QuranDB extends Dexie {
     })
     // Adds the word audio downloads; every other table is unchanged.
     this.version(2).stores({ wordAudioDownloads: '&surah' })
+    // Adds the daily checklist ticks.
+    this.version(3).stores({ dailyChecks: '&itemId' })
   }
 }
 

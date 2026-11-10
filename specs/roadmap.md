@@ -182,3 +182,16 @@ Spec: [2026-10-22-word-audio-offline](2026-10-22-word-audio-offline/)
 - [x] Include the choice of downloaded surahs (not the audio) in backups; older backups must still load
 - [x] Estimate the size before downloading and warn on low storage or a metered connection
 - [x] Tests for download, progress, removal and backup validation
+
+---
+
+## Phase 15: Daily Checklist
+
+**Goal:** A simple checklist of today's five acts (three prayers and two
+moments with the Quran) that resets every day.
+Spec: [2026-11-10-daily-checklist](2026-11-10-daily-checklist/)
+
+- [x] "Daily" tab with the five items: Salat Fajr, Salat Al Wusta, Salat Isha, Quran at Dawn, Meditate with Quran at Night
+- [x] Ticks stored on the device and reset at local midnight (no history, no backups)
+- [x] Quran items link to the Quran feed
+- [x] Tests and axe (offline check in a real browser still to do)

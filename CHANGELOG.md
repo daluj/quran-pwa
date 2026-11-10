@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-10
+
+- Add a Daily tab with a checklist for today (Salat Fajr, Salat Al Wusta, Salat Isha, Quran at Dawn, Meditate with Quran at Night) that resets at midnight; the Quran items link to the feed
+
 ## 2026-10-22
 
 - Keep the "Mark as last read" button in reading mode, under the verse number, so you can still save where you left off

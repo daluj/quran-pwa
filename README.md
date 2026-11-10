@@ -23,6 +23,8 @@ stack, roadmap and a spec for every feature (see
   audio from Quran.com's CDN); tap it again to stop. Words you have played
   keep working offline, and Settings can download a whole surah's word audio
   (progress, cancel, resume, remove) so every word works without a connection.
+- **Daily:** a checklist of today's five items (three prayers, two moments with
+  the Quran); it resets at local midnight and keeps no history.
 - **Prayers:** prayer topics holding verses that can be reordered, removed or
   opened in the Quran. Seven topics come with verses (Forgiveness, Guidance,
   Protection, Gratitude, Patience, Provisions, Knowledge); all can be renamed
@@ -94,7 +96,7 @@ src/
   components/        Layout (sidebar, tab bar, header), dialog, shared bits
   data/              Generated Quran JSON, default lists, types, sources
   db/                Dexie schema, seeding, lists, bookmarks, settings, backups
-  features/          quran/, prayers/, explore/, lists/, settings/
+  features/          quran/, prayers/, daily/, explore/, lists/, settings/
   lib/               Arabic normalization, reference parsing, search, word audio
                      (player, surah downloads)
   styles/            Tailwind and theme tokens
