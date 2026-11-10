@@ -30,17 +30,17 @@ the app does and why. [README.md](README.md) covers setup and structure.
 5. **Close the phase:** check it off in `roadmap.md`, update `CHANGELOG.md`
    (`changelog` skill, `## Unreleased`), and update `tech-stack.md`, README or
    this file if the stack or conventions changed.
-6. **Hand over:** summarize and suggest a commit message; the owner reviews
-   and commits.
+6. **Hand over:** commit and push to the working branch, then summarize.
 7. **Replan** when priorities change: edit `roadmap.md` (keep phases small).
 
 Small fixes that don't change behaviour don't need a spec folder.
 
 ## Workflow rules
 
-- **Never commit or push.** Leave changes in the working tree; the owner
-  reviews and commits. Suggest a Conventional Commits message instead
-  (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`).
+- **Commit and push** once the checks pass, on the branch you were given
+  (never straight to `main`). Use Conventional Commits messages (`feat:`,
+  `fix:`, `docs:`, `chore:`, `test:`, `refactor:`). Don't open a pull request
+  unless asked; the owner reviews on the branch.
 - Before saying a change is done, run `npm run lint`, `npm run typecheck` and
   `npm test` (or `/verify`, which also builds). For UI changes, also check it
   in the browser (`npm run build && npm run preview`).

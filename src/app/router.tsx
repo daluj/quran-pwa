@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
+import { DailyPage } from '../features/daily/DailyPage'
 import { ExplorePage } from '../features/explore/ExplorePage'
 import { ListDetailPage } from '../features/lists/ListDetailPage'
 import { PrayersPage } from '../features/prayers/PrayersPage'
@@ -16,6 +17,7 @@ export const routes: RouteObject[] = [
       { path: 'quran/:surah?/:ayah?', element: <QuranPage /> },
       { path: 'prayers', element: <PrayersPage /> },
       { path: 'prayers/:listId', element: <ListDetailPage type="prayer" key="prayer" /> },
+      { path: 'daily', element: <DailyPage /> },
       { path: 'explore', element: <ExplorePage /> },
       { path: 'explore/collections/:listId', element: <ListDetailPage type="collection" key="collection" /> },
       { path: 'settings', element: <SettingsPage /> },

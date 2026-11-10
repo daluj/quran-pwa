@@ -14,7 +14,7 @@
 - **React 19** with **Vite 8** — a client-side single-page app, no server
   rendering and no backend
 - **React Router 8** — routes in `src/app/router.tsx`: `/quran/:surah?/:ayah?`,
-  `/prayers`, `/prayers/:listId`, `/explore`, `/explore/collections/:listId`,
+  `/prayers`, `/prayers/:listId`, `/daily`, `/explore`, `/explore/collections/:listId`,
   `/settings`; unknown paths redirect to `/quran`
 - **@tanstack/react-virtual** — window-scrolled virtualization of the
   6,350-row Quran feed (6,236 verses + 114 surah headers)
@@ -49,6 +49,8 @@
   - User tables: `lists`, `listItems`, `bookmarks`, `settings`
   - Downloads: `wordAudioDownloads` (schema version 2): per surah `complete`,
     `partial` or `wanted` (from a backup), words and bytes; never touched by seeding
+  - Daily checklist: `dailyChecks` (schema version 3): item id and the local date it was
+    ticked; only today's rows count; not part of backups
   - Internal: `meta` (data version, defaults seeded)
 - `navigator.storage.persist()` is requested on startup
 - Backups are JSON files (`src/db/backup.ts`), validated before restore

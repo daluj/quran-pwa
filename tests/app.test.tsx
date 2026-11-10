@@ -83,6 +83,7 @@ beforeAll(() => {
 afterEach(async () => {
   cleanup()
   await db.bookmarks.clear()
+  await db.dailyChecks.clear()
   scrollY = 0
 })
 
@@ -126,6 +127,38 @@ describe('app shell', () => {
     fireEvent.click(within(mainNav()).getByRole('link', { name: 'Explore' }))
     expect(router.state.location.pathname).toBe('/explore')
     expect(screen.getByRole('heading', { level: 1, name: 'Explore' })).toBeTruthy()
+  })
+
+  it('has a Daily tab with the five checklist items', async () => {
+    const router = renderApp('/quran')
+    await screen.findByText('Praise be to God, Lord of the Worlds.')
+    fireEvent.click(within(mainNav()).getByRole('link', { name: 'Daily' }))
+    expect(router.state.location.pathname).toBe('/daily')
+    expect(screen.getByRole('heading', { level: 1, name: 'Daily' })).toBeTruthy()
+    const labels = screen.getAllByRole('checkbox').map((box) => box.closest('label')?.textContent)
+    expect(labels).toEqual([
+      'Salat Fajr',
+      'Salat Al Wusta',
+      'Salat Isha',
+      'Quran at Dawn',
+      'Meditate with Quran at Night',
+    ])
+    expect(screen.getByText('0 of 5 done today')).toBeTruthy()
+    const links = screen.getAllByRole('link', { name: 'Open Quran' })
+    expect(links).toHaveLength(2)
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/quran', '/quran'])
+  })
+
+  it('ticks a daily item, keeps it after a remount, and unticks it', async () => {
+    renderApp('/daily')
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Salat Fajr' }))
+    expect(await screen.findByText('1 of 5 done today')).toBeTruthy()
+    cleanup()
+    renderApp('/daily')
+    expect(await screen.findByText('1 of 5 done today')).toBeTruthy()
+    expect((screen.getByRole('checkbox', { name: 'Salat Fajr' }) as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Salat Fajr' }))
+    expect(await screen.findByText('0 of 5 done today')).toBeTruthy()
   })
 
   it('keeps what was typed in the Explore search box while the URL catches up', async () => {
@@ -644,6 +677,7 @@ describe('accessibility (axe)', () => {
     ['/prayers', 'Forgiveness'],
     ['/explore?q=mercy', 'Show more results'],
     ['/settings', 'Your data'],
+    ['/daily', 'Salat Fajr'],
   ])('%s has no violations', async (path, ready) => {
     renderApp(path)
     await screen.findAllByText(new RegExp(ready))

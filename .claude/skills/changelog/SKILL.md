@@ -23,8 +23,8 @@ description: Maintains CHANGELOG.md in the project root from the git commit hist
    (from the feature's `specs/…/requirements.md`). The script keeps that
    section; move its bullets under the date once they're committed.
 
-3. Review the wording: one bullet per change, in plain words. Never commit;
-   the owner commits `CHANGELOG.md` with their work.
+3. Review the wording: one bullet per change, in plain words. Commit `CHANGELOG.md`
+   with the work.
 
 ## Format
 
