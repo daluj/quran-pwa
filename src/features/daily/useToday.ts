@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { localDateKey, msUntilMidnight } from '../../db/dailyChecks'
+import { localDateKey, msUntilMidnight } from '../../db/dailyTicks'
 
 /** Today's local date key, refreshed at midnight and when the app is shown again. */
 export function useToday(): string {

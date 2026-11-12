@@ -49,8 +49,9 @@
   - User tables: `lists`, `listItems`, `bookmarks`, `settings`
   - Downloads: `wordAudioDownloads` (schema version 2): per surah `complete`,
     `partial` or `wanted` (from a backup), words and bytes; never touched by seeding
-  - Daily checklist: `dailyChecks` (schema version 3): item id and the local date it was
-    ticked; only today's rows count; not part of backups
+  - Daily checklist: `dailyTicks` (schema version 4): one row per item per day ticked,
+    key `[date+itemId]`; only the current Sunday-to-Saturday week is kept (older rows
+    are deleted when the Daily page opens or the day changes); not part of backups
   - Internal: `meta` (data version, defaults seeded)
 - `navigator.storage.persist()` is requested on startup
 - Backups are JSON files (`src/db/backup.ts`), validated before restore

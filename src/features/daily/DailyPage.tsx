@@ -1,13 +1,22 @@
 import { Link } from 'react-router'
 import { Header } from '../../components/layout/Header'
-import { setChecked, useCheckedIds } from '../../db/dailyChecks'
+import { useEffect } from 'react'
+import { pruneOldWeeks, setChecked, useWeekTicks } from '../../db/dailyTicks'
 import { DAILY_ITEMS } from './items'
 import { useToday } from './useToday'
+import { WeekGrid } from './WeekGrid'
 
 /** Today's checklist; it starts unchecked every day and keeps no history. */
 export function DailyPage() {
   const today = useToday()
-  const checked = useCheckedIds(today)
+  const ticks = useWeekTicks(today)
+  const checked = ticks.filter((t) => t.date === today).map((t) => t.itemId)
+
+  // A new week starts on Sunday: drop what is older.
+  useEffect(() => {
+    void pruneOldWeeks(today)
+  }, [today])
+
   const done = DAILY_ITEMS.filter((item) => checked.includes(item.id)).length
 
   return (
@@ -39,6 +48,7 @@ export function DailyPage() {
           )
         })}
       </ul>
+      <WeekGrid ticks={ticks} today={today} />
     </>
   )
 }

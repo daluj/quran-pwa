@@ -204,8 +204,8 @@ Spec: [2026-11-10-daily-checklist](2026-11-10-daily-checklist/)
 week went; the record restarts every Sunday.
 Spec: [2026-11-12-weekly-review](2026-11-12-weekly-review/)
 
-- [ ] Store ticks per day for the current week; delete older rows on a new week
-- [ ] "This week" grid on the Daily page: items by days, counts, upcoming days not counted as missed
-- [ ] Migrate Phase 15 ticks; no backups, no history beyond the week
-- [ ] Tests, axe and offline check
+- [x] Store ticks per day for the current week; delete older rows on a new week
+- [x] "This week" grid on the Daily page: items by days, counts, upcoming days not counted as missed
+- [x] Migrate Phase 15 ticks; no backups, no history beyond the week
+- [x] Tests and axe (real-browser checks still to do)
 
