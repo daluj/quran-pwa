@@ -24,7 +24,8 @@ stack, roadmap and a spec for every feature (see
   keep working offline, and Settings can download a whole surah's word audio
   (progress, cancel, resume, remove) so every word works without a connection.
 - **Daily:** a checklist of today's five items (three prayers, two moments with
-  the Quran); it resets at local midnight and keeps no history.
+  the Quran); it resets at local midnight, and a "This week" grid (Sunday to Saturday)
+  shows how the week went. Older weeks are deleted.
 - **Prayers:** prayer topics holding verses that can be reordered, removed or
   opened in the Quran. Seven topics come with verses (Forgiveness, Guidance,
   Protection, Gratitude, Patience, Provisions, Knowledge); all can be renamed

@@ -83,7 +83,7 @@ beforeAll(() => {
 afterEach(async () => {
   cleanup()
   await db.bookmarks.clear()
-  await db.dailyChecks.clear()
+  await db.dailyTicks.clear()
   scrollY = 0
 })
 
@@ -159,6 +159,22 @@ describe('app shell', () => {
     expect((screen.getByRole('checkbox', { name: 'Salat Fajr' }) as HTMLInputElement).checked).toBe(true)
     fireEvent.click(screen.getByRole('checkbox', { name: 'Salat Fajr' }))
     expect(await screen.findByText('0 of 5 done today')).toBeTruthy()
+  })
+
+  it('shows this week as a grid that follows today\'s ticks, with no checkboxes for other days', async () => {
+    renderApp('/daily')
+    const table = await screen.findByRole('table', { name: 'Checklist for this week, Sunday to Saturday' })
+    const days = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent)
+    expect(days).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+    expect(within(table).getAllByRole('rowheader')).toHaveLength(5)
+    expect(within(table).queryAllByRole('checkbox')).toHaveLength(0)
+    expect(within(table).queryAllByRole('img', { name: 'Done' })).toHaveLength(0)
+    expect(screen.getByText(/^0 of \d+ done so far$/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Salat Fajr' }))
+    await vi.waitFor(() => expect(within(table).getAllByRole('img', { name: 'Done' })).toHaveLength(1))
+    expect(screen.getByText(/^1 of \d+ done so far$/)).toBeTruthy()
   })
 
   it('keeps what was typed in the Explore search box while the URL catches up', async () => {

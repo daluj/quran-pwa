@@ -195,3 +195,17 @@ Spec: [2026-11-10-daily-checklist](2026-11-10-daily-checklist/)
 - [x] Ticks stored on the device and reset at local midnight (no history, no backups)
 - [x] Quran items link to the Quran feed
 - [x] Tests and axe (offline check in a real browser still to do)
+
+---
+
+## Phase 16: Weekly Review
+
+**Goal:** Keep this week's daily ticks (Sunday to Saturday) and review how the
+week went; the record restarts every Sunday.
+Spec: [2026-11-12-weekly-review](2026-11-12-weekly-review/)
+
+- [x] Store ticks per day for the current week; delete older rows on a new week
+- [x] "This week" grid on the Daily page: items by days, counts, upcoming days not counted as missed
+- [x] Migrate Phase 15 ticks; no backups, no history beyond the week
+- [x] Tests and axe (real-browser checks still to do)
+

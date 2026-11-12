@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie'
+import Dexie, { type EntityTable, type Table } from 'dexie'
 import type { Surah, TranslationLanguage, Verse } from '../data/types'
 
 export type ListType = 'prayer' | 'collection'
@@ -41,11 +41,11 @@ export interface WordAudioDownload {
   updatedAt: number
 }
 
-/** One row per daily item ticked; it counts only while `date` is today (local). */
-export interface DailyCheck {
-  itemId: string
+/** One row per daily item ticked on a day; only the current week (Sunday to Saturday) is kept. */
+export interface DailyTick {
   /** Local calendar date, `YYYY-MM-DD`. */
   date: string
+  itemId: string
 }
 
 export type ThemePreference = 'system' | 'light' | 'dark'
@@ -96,7 +96,7 @@ export class QuranDB extends Dexie {
   settings!: EntityTable<SettingRow, 'key'>
   meta!: EntityTable<MetaRow, 'key'>
   wordAudioDownloads!: EntityTable<WordAudioDownload, 'surah'>
-  dailyChecks!: EntityTable<DailyCheck, 'itemId'>
+  dailyTicks!: Table<DailyTick, [string, string]>
 
   constructor(name = 'quran-pwa') {
     super(name)
@@ -111,8 +111,15 @@ export class QuranDB extends Dexie {
     })
     // Adds the word audio downloads; every other table is unchanged.
     this.version(2).stores({ wordAudioDownloads: '&surah' })
-    // Adds the daily checklist ticks.
+    // Adds the daily checklist ticks (one row per item, so only today).
     this.version(3).stores({ dailyChecks: '&itemId' })
+    // One row per item per day, to keep the week. The version 3 rows are today's ticks.
+    this.version(4)
+      .stores({ dailyTicks: '&[date+itemId], date', dailyChecks: null })
+      .upgrade(async (tx) => {
+        const old = await tx.table<{ itemId: string; date: string }>('dailyChecks').toArray()
+        await tx.table('dailyTicks').bulkPut(old.map(({ date, itemId }) => ({ date, itemId })))
+      })
   }
 }
 

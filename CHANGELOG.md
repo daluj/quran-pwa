@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-12
+
+- Add a "This week" grid to the Daily tab (Sunday to Saturday, items by days, with counts); the record restarts every Sunday and keeps nothing older
+
 ## 2026-11-10
 
 - Add a Daily tab with a checklist for today (Salat Fajr, Salat Al Wusta, Salat Isha, Quran at Dawn, Meditate with Quran at Night) that resets at midnight; the Quran items link to the feed
